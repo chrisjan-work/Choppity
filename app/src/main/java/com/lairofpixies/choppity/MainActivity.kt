@@ -1,5 +1,6 @@
 package com.lairofpixies.choppity
 
+//import androidx.compose.ui.graphics.graphicsLayer
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
@@ -11,6 +12,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,16 +25,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import com.lairofpixies.choppity.ui.theme.ChoppityTheme
 import java.io.IOException
+
 
 class MainActivity : ComponentActivity() {
 
@@ -50,12 +59,7 @@ class MainActivity : ComponentActivity() {
     fun DisplayPickedImage(imageUri: Uri?) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (imageUri != null) {
-                AsyncImage(
-                    model = imageUri,
-                    contentDescription = "Picked Image",
-                    modifier = Modifier.fillMaxSize(), // Adjust size as needed
-                    contentScale = ContentScale.Fit // Or other ContentScale options
-                )
+                ZoomableImage(imageUri = imageUri)
             } else {
                 // Optionally display a placeholder or message when no image is selected
                 // Example:
@@ -64,9 +68,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    companion object {
-        const val MIMETYPE_IMAGE = "image/*"
-    }
 
     @Composable
     fun ImageExportScreen(imageUri: Uri?) {
@@ -184,7 +185,61 @@ class MainActivity : ComponentActivity() {
             ImageExportScreen(imageUri = selectedImageUri)
 
             DisplayPickedImage(imageUri = selectedImageUri)
+
         }
 
+    }
+
+    /* V3 */
+
+    @Composable
+    fun ZoomableImage(imageUri: Uri) {
+        var scale by remember { mutableFloatStateOf(MINIMUM_ZOOM) }
+        var offset by remember { mutableStateOf(Offset.Zero) }
+        val transformableState =
+            rememberTransformableState { zoomChange, panChange, _ ->
+                scale = (scale * zoomChange).coerceIn(MINIMUM_ZOOM, MAXIMUM_ZOOM)
+                offset += panChange
+            }
+
+        if (RESET_ZOOM_ON_RELEASE) {
+            LaunchedEffect(transformableState.isTransformInProgress) {
+                if (!transformableState.isTransformInProgress) {
+                    scale = 1.0f
+                    offset = Offset.Zero
+                }
+            }
+        }
+
+        AsyncImage(
+            model = imageUri,
+            contentDescription = "Zoomable Image",
+            contentScale = ContentScale.Fit, // Or other ContentScale options
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(onDoubleTap = {
+                        if (RESET_ZOOM_ON_DOUBLETAP) {
+                            scale = MINIMUM_ZOOM
+                            offset = Offset.Zero
+                        }
+                    })
+                }
+                .transformable(transformableState)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    translationX = offset.x
+                    translationY = offset.y
+                }
+        )
+    }
+
+    companion object {
+        const val MIMETYPE_IMAGE = "image/*"
+        const val RESET_ZOOM_ON_DOUBLETAP = true
+        const val RESET_ZOOM_ON_RELEASE = false
+        private const val MINIMUM_ZOOM = 1f
+        private const val MAXIMUM_ZOOM = 20f
     }
 }
