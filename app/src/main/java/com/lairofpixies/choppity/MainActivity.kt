@@ -18,7 +18,8 @@ import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -254,6 +257,7 @@ class MainActivity : ComponentActivity() {
     }
 
     /* v4 */
+
     @Composable
     fun BorderedImage(
         imageUri: Uri,
@@ -270,40 +274,43 @@ class MainActivity : ComponentActivity() {
             imageBitmap = loadImageBitmap(context, imageUri)
         }
 
-        // TODO: this is scaling DOWN the image to fit the canvas
-        // we want to scale UP the canvas, and then zoom out to fit
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .aspectRatio(widthFactor / heightFactor)
-                .onSizeChanged { canvasSize = it }
-        ) {
-            if (imageBitmap != null) {
-                val originalWidth = imageBitmap!!.width.toFloat()
-                val originalHeight = imageBitmap!!.height.toFloat()
+        if (imageBitmap != null) {
+            val originalWidth = imageBitmap!!.width.toFloat()
+            val originalHeight = imageBitmap!!.height.toFloat()
+            Box(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .aspectRatio(widthFactor / heightFactor)
+                    .onSizeChanged { canvasSize = it }
+            ) {
+                val expandedCanvasWidth =
+                    max(originalWidth, originalHeight * widthFactor / heightFactor)
+                val expandedCanvasHeight =
+                    max(originalHeight, originalWidth * heightFactor / widthFactor)
 
-                val expandedCanvasWidth = max(originalWidth, originalHeight * widthFactor / heightFactor)
-                val expandedCanvasHeight = max(originalHeight, originalWidth * heightFactor / widthFactor)
+                val offsetX = (expandedCanvasWidth - originalWidth) / 2f
+                val offsetY = (expandedCanvasHeight - originalHeight) / 2f
 
-                val drawWidth = originalWidth * canvasSize.width / expandedCanvasWidth
-                val drawHeight = originalHeight * canvasSize.height / expandedCanvasHeight
-
-                val offsetX = (canvasSize.width - drawWidth) / 2f
-                val offsetY = (canvasSize.height - drawHeight) / 2f
-
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    drawRect(color = backgroundColor) // Draw background
+                Canvas(
+                    modifier = Modifier.scale(
+                        canvasSize.width / expandedCanvasWidth,
+                        canvasSize.height / expandedCanvasHeight
+                    )
+                ) {
+                    drawRect(
+                        color = backgroundColor,
+                        size = Size(expandedCanvasWidth, expandedCanvasHeight)
+                    ) // Draw background
                     translate(left = offsetX, top = offsetY) {
                         drawImage(
-                            image = imageBitmap!!,
-                            dstSize = IntSize(drawWidth.toInt(), drawHeight.toInt())
+                            image = imageBitmap!!
                         )
                     }
                 }
-            } else {
-                // Placeholder while loading
-                Text("Loading...", modifier = Modifier.align(Alignment.Center))
             }
+        } else {
+            // Placeholder while loading
+            Text("Loading...")
         }
     }
 
@@ -321,6 +328,8 @@ class MainActivity : ComponentActivity() {
                 null
             }
         }
+
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     fun BorderedImageScreen(imageUri: Uri?) {
         var widthFactor by remember { mutableFloatStateOf(16f) }
@@ -336,23 +345,20 @@ class MainActivity : ComponentActivity() {
                         .fillMaxWidth()
                         .weight(1f)
                 )
+
                 // Optional controls to change widthFactor and heightFactor
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Button(onClick = { widthFactor = 1f; heightFactor = 1f }) {
-                        Text("1:1")
+                    aspectRatios.forEach { ar ->
+                        Button(onClick = {
+                            widthFactor = ar.first.toFloat(); heightFactor = ar.second.toFloat()
+                        }) {
+                            Text("${ar.first}:${ar.second}")
+                        }
                     }
-                    Button(onClick = { widthFactor = 4f; heightFactor = 3f }) {
-                        Text("4:3")
-                    }
-                    Button(onClick = { widthFactor = 3f; heightFactor = 2f }) {
-                        Text("3:2")
-                    }
-                    Button(onClick = { widthFactor = 16f; heightFactor = 9f }) {
-                        Text("16:9")
-                    }
+
                 }
             } else {
                 Text("No Image Selected", modifier = Modifier.align(Alignment.CenterHorizontally))
@@ -366,5 +372,16 @@ class MainActivity : ComponentActivity() {
         const val RESET_ZOOM_ON_RELEASE = false
         private const val MINIMUM_ZOOM = 1f
         private const val MAXIMUM_ZOOM = 20f
+        val aspectRatios = listOf(
+            3 to 4,
+            5 to 6,
+            1 to 1,
+            6 to 5,
+            4 to 3,
+            7 to 5,
+            3 to 2,
+            16 to 9,
+            20 to 9,
+        )
     }
 }
