@@ -1,6 +1,5 @@
 package com.lairofpixies.choppity
 
-//import androidx.compose.ui.graphics.graphicsLayer
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
@@ -12,12 +11,17 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
@@ -32,13 +36,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntSize
+import androidx.core.graphics.drawable.toBitmap
+import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.lairofpixies.choppity.ui.theme.ChoppityTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.IOException
+import kotlin.math.max
 
 
 class MainActivity : ComponentActivity() {
@@ -184,7 +201,8 @@ class MainActivity : ComponentActivity() {
 
             ImageExportScreen(imageUri = selectedImageUri)
 
-            DisplayPickedImage(imageUri = selectedImageUri)
+//            DisplayPickedImage(imageUri = selectedImageUri)
+            BorderedImageScreen(selectedImageUri)
 
         }
 
@@ -233,6 +251,113 @@ class MainActivity : ComponentActivity() {
                     translationY = offset.y
                 }
         )
+    }
+
+    /* v4 */
+    @Composable
+    fun BorderedImage(
+        imageUri: Uri,
+        widthFactor: Float,
+        heightFactor: Float,
+        modifier: Modifier = Modifier,
+        backgroundColor: Color = Color.Black,
+    ) {
+        val context = LocalContext.current
+        var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+        var canvasSize by remember { mutableStateOf(IntSize.Zero) }
+
+        LaunchedEffect(imageUri, widthFactor, heightFactor) {
+            imageBitmap = loadImageBitmap(context, imageUri)
+        }
+
+        // TODO: this is scaling DOWN the image to fit the canvas
+        // we want to scale UP the canvas, and then zoom out to fit
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .aspectRatio(widthFactor / heightFactor)
+                .onSizeChanged { canvasSize = it }
+        ) {
+            if (imageBitmap != null) {
+                val originalWidth = imageBitmap!!.width.toFloat()
+                val originalHeight = imageBitmap!!.height.toFloat()
+
+                val expandedCanvasWidth = max(originalWidth, originalHeight * widthFactor / heightFactor)
+                val expandedCanvasHeight = max(originalHeight, originalWidth * heightFactor / widthFactor)
+
+                val drawWidth = originalWidth * canvasSize.width / expandedCanvasWidth
+                val drawHeight = originalHeight * canvasSize.height / expandedCanvasHeight
+
+                val offsetX = (canvasSize.width - drawWidth) / 2f
+                val offsetY = (canvasSize.height - drawHeight) / 2f
+
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawRect(color = backgroundColor) // Draw background
+                    translate(left = offsetX, top = offsetY) {
+                        drawImage(
+                            image = imageBitmap!!,
+                            dstSize = IntSize(drawWidth.toInt(), drawHeight.toInt())
+                        )
+                    }
+                }
+            } else {
+                // Placeholder while loading
+                Text("Loading...", modifier = Modifier.align(Alignment.Center))
+            }
+        }
+    }
+
+    private suspend fun loadImageBitmap(context: android.content.Context, uri: Uri): ImageBitmap? =
+        withContext(Dispatchers.IO) {
+            val loader = ImageLoader(context)
+            val request = ImageRequest.Builder(context)
+                .data(uri)
+                .build()
+
+            val result = loader.execute(request)
+            if (result is SuccessResult) {
+                result.drawable.toBitmap().asImageBitmap()
+            } else {
+                null
+            }
+        }
+    @Composable
+    fun BorderedImageScreen(imageUri: Uri?) {
+        var widthFactor by remember { mutableFloatStateOf(16f) }
+        var heightFactor by remember { mutableFloatStateOf(9f) }
+
+        Column(Modifier.fillMaxSize()) {
+            if (imageUri != null) {
+                BorderedImage(
+                    imageUri = imageUri,
+                    widthFactor = widthFactor,
+                    heightFactor = heightFactor,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
+                // Optional controls to change widthFactor and heightFactor
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Button(onClick = { widthFactor = 1f; heightFactor = 1f }) {
+                        Text("1:1")
+                    }
+                    Button(onClick = { widthFactor = 4f; heightFactor = 3f }) {
+                        Text("4:3")
+                    }
+                    Button(onClick = { widthFactor = 3f; heightFactor = 2f }) {
+                        Text("3:2")
+                    }
+                    Button(onClick = { widthFactor = 16f; heightFactor = 9f }) {
+                        Text("16:9")
+                    }
+                }
+            } else {
+                Text("No Image Selected", modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
+        }
     }
 
     companion object {
