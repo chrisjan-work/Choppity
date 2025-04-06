@@ -14,6 +14,7 @@ object Constants {
 
     // Known aspect ratios
     val ASPECT_RATIOS = listOf(
+        0 to 0,
         3 to 4,
         5 to 6,
         1 to 1,

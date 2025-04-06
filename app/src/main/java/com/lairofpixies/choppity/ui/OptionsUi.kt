@@ -45,9 +45,13 @@ fun AspectRatioRow(
                 onClick = {
                     setAspectRatio(Size(ar.first.toFloat(), ar.second.toFloat()))
                 },
-                modifier = Modifier.widthIn(120.dp)
+                modifier = Modifier.widthIn(80.dp)
             ) {
-                Text("${ar.first}:${ar.second}")
+                if (ar.first > 0 && ar.second > 0) {
+                    Text("${ar.first}:${ar.second}")
+                } else {
+                    Text("Orig")
+                }
             }
         }
     }
@@ -70,9 +74,11 @@ fun ColorRow(
                 },
 //                modifier = Modifier.widthIn(120.dp)
             ) {
-                Box(Modifier
-                    .size(52.dp, 32.dp)
-                    .background(color))
+                Box(
+                    Modifier
+                        .size(52.dp, 32.dp)
+                        .background(color)
+                )
             }
         }
     }

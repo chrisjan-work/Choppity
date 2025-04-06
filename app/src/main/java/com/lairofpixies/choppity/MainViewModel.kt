@@ -69,6 +69,7 @@ class MainViewModel(
                 }
 
                 val ratio = calculateDefaultAspectRatio(bitmap)
+
                 mutex.withLock {
                     _loadedBitmap.emit(bitmap)
                     _aspectRatio.emit(ratio)
@@ -92,7 +93,9 @@ class MainViewModel(
     }
 
     private fun calculateDefaultAspectRatio(bitmap: Bitmap): Size {
-        return Constants.ASPECT_RATIOS.map {
+        return Constants.ASPECT_RATIOS.filter {
+            it.first > 0 && it.second > 0
+        }.map {
             Size(it.first.toFloat(), it.second.toFloat())
         }.minByOrNull {
             val newDimensions = calculateDimensions(bitmap, it)
@@ -113,12 +116,20 @@ class MainViewModel(
         dimensions: Size,
         color: Color
     ) {
-        val desiredDimensions = calculateDimensions(inputBitmap, ratio)
-        val processedBitmap = createResizedBitmap(inputBitmap, desiredDimensions, color)
-        _hiresBitmap.emit(processedBitmap)
+        val processedBitmap = if (ratio.width <= 0f || ratio.height <= 0f) {
+            // special case: skip resizing
+            inputBitmap
+        } else {
+            val desiredDimensions = calculateDimensions(inputBitmap, ratio)
+            createResizedBitmap(inputBitmap, desiredDimensions, color)
+        }
 
         val downsizedBitmap = downsizeBitmap(processedBitmap, dimensions)
-        _loresBitmap.emit(downsizedBitmap)
+
+        mutex.withLock {
+            _hiresBitmap.emit(processedBitmap)
+            _loresBitmap.emit(downsizedBitmap)
+        }
     }
 
     private fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
