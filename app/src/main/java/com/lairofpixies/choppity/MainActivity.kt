@@ -6,11 +6,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.lairofpixies.choppity.ui.ActionRow
@@ -32,9 +35,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ChoppityTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                MaterialTheme.colorScheme.background.let { initialBackground ->
+                    LaunchedEffect(initialBackground) {
+                        viewModel.updateAppColor(initialBackground)
+                    }
+                }
+                Scaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) { innerPadding ->
                     ScreenDimensionsUpdater { screenSize -> viewModel.updateScreenSize(screenSize) }
-                    MainScreen(modifier = Modifier.padding(innerPadding))
+                    MainScreen(modifier = Modifier.padding(innerPadding).background(viewModel.appBackground.collectAsState().value))
                 }
             }
         }
@@ -62,6 +73,7 @@ class MainActivity : ComponentActivity() {
             ActionRow(
                 inputUri = inputUri.value,
                 outputAvailable = hiresBitmap.value != null,
+                flipAppColor = { color -> viewModel.updateAppColor(color) },
                 importAction = { uri -> viewModel.importImage(uri) },
                 exportAction = { uri ->
                     hiresBitmap.value?.let { bitmap ->

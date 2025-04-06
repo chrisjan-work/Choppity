@@ -32,6 +32,9 @@ class MainViewModel(
     private val context: Context
 ) : ViewModel() {
 
+    private val _appBackground = MutableStateFlow(Color.Black)
+    val appBackground = _appBackground.asStateFlow()
+
     private val _inputUri = MutableStateFlow<Uri?>(null)
     val inputUri = _inputUri.asStateFlow()
 
@@ -278,6 +281,12 @@ class MainViewModel(
             outputStream.close()
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    fun updateAppColor(color: Color) {
+        viewModelScope.launch {
+            _appBackground.emit(color)
         }
     }
 }
