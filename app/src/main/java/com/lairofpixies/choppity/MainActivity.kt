@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import com.lairofpixies.choppity.logic.DiskLogic
 import com.lairofpixies.choppity.logic.MainViewModel
 import com.lairofpixies.choppity.ui.ActionRow
 import com.lairofpixies.choppity.ui.OptionsRow
@@ -26,7 +27,9 @@ import com.lairofpixies.choppity.ui.theme.ChoppityTheme
 
 class MainActivity : ComponentActivity() {
 
-    val viewModel = MainViewModel(this)
+    // poor mans dependency injection
+    val diskLogic = DiskLogic(this)
+    val viewModel = MainViewModel(diskLogic)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

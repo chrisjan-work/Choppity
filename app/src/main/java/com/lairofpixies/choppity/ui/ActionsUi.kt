@@ -18,7 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.lairofpixies.choppity.Constants
-import com.lairofpixies.choppity.logic.getFileNameFromUri
+import com.lairofpixies.choppity.logic.DiskLogic
 
 
 @Composable
@@ -74,7 +74,7 @@ fun ExportButton(contentUri: Uri?, onClick: (Uri) -> Unit) {
 
     // Extract filename from Uri on composition if imageUri changes
     LaunchedEffect(contentUri) {
-        originalFileName = contentUri?.let { getFileNameFromUri(context, contentUri) }
+        originalFileName = contentUri?.let { DiskLogic(context).getFileNameFromUri(contentUri) }
     }
 
     if (contentUri != null) {

@@ -17,7 +17,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class MainViewModel(
-    private val context: Context
+    private val diskLogic: DiskLogic
 ) : ViewModel() {
 
     private val _appBackground = MutableStateFlow(Color.Black)
@@ -62,7 +62,7 @@ class MainViewModel(
     private fun listenToParameterChanges() {
         viewModelScope.launch {
             inputUri.collect { uri ->
-                val bitmap = uri?.let { loadBitmapFromUri(context, uri) }
+                val bitmap = uri?.let { diskLogic.loadBitmapFromUri(uri) }
                 if (bitmap == null) {
                     _loadedBitmap.emit(null)
                     return@collect
@@ -154,19 +154,19 @@ class MainViewModel(
 
     fun export(bitmap: Bitmap, uri: Uri) {
         if (processParams.value.sectionCount <= 1) {
-            saveBitmapToUri(context, bitmap, uri)
+            diskLogic.saveBitmapToUri(bitmap, uri)
         } else {
             TODO("doesn't quite work yet. The chopping part works, but writing files is not so easy")
             // chop in parts, save the parts
             viewModelScope.launch {
                 val sections =
                     choppify(bitmap, processParams.value.sectionCount)
-                val originalFilename = getFileNameFromUri(context, uri)
+                val originalFilename = diskLogic.getFileNameFromUri(uri)
                 for (section in sections.withIndex()) {
                     val sectionUri =
                         uri.toString()?.insertBeforeExtension("_${section.index}")?.toUri()
                     sectionUri?.let {
-                        saveBitmapToUri(context, section.value, sectionUri)
+                        diskLogic.saveBitmapToUri(section.value, sectionUri)
                     }
                 }
             }
