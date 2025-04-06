@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import com.lairofpixies.choppity.logic.MainViewModel
 import com.lairofpixies.choppity.ui.ActionRow
 import com.lairofpixies.choppity.ui.OptionsRow
 import com.lairofpixies.choppity.ui.ProcessedImageDisplay
@@ -77,7 +78,7 @@ class MainActivity : ComponentActivity() {
                 importAction = { uri -> viewModel.importImage(uri) },
                 exportAction = { uri ->
                     hiresBitmap.value?.let { bitmap ->
-                        viewModel.saveBitmapToUri(bitmap, uri)
+                        viewModel.export(bitmap, uri)
                     }
                 },
                 rotateAction = { viewModel.increaseRotation() }
