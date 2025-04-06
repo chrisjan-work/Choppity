@@ -13,7 +13,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -26,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.lairofpixies.choppity.logic.DiskLogic
 import com.lairofpixies.choppity.logic.MainViewModel
-import com.lairofpixies.choppity.ui.ActionRow
 import com.lairofpixies.choppity.ui.OptionsRow
 import com.lairofpixies.choppity.ui.ProcessedImageDisplay
 import com.lairofpixies.choppity.ui.ProgressDialog
@@ -48,26 +46,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ChoppityTheme {
-                MaterialTheme.colorScheme.background.let { initialBackground ->
-                    LaunchedEffect(initialBackground) {
-                        viewModel.updateAppColor(initialBackground)
-                    }
-                }
-                Scaffold(
-                    topBar = { MainTopBar() },
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) { innerPadding ->
-                    ScreenDimensionsUpdater { screenSize -> viewModel.updateScreenSize(screenSize) }
-                    MainScreen(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .background(viewModel.appBackground.collectAsState().value)
-                    )
-                }
+                MainScreen()
             }
         }
     }
+
 
     private fun parseIntent(newIntent: Intent?) {
         if (newIntent?.action in setOf(Intent.ACTION_SEND, Intent.ACTION_EDIT)) {
@@ -125,25 +108,38 @@ class MainActivity : ComponentActivity() {
         return callForOutput
     }
 
+
     @Composable
-    fun MainScreen(modifier: Modifier = Modifier) {
-        Column(modifier.fillMaxSize()) {
-            // Input
-            val inputUri = viewModel.inputUri.collectAsState()
-            val hiresBitmap = viewModel.hiresBitmap.collectAsState()
-            ActionRow(
-                inputUri = inputUri.value,
-                outputAvailable = hiresBitmap.value != null,
-                flipAppColor = { color -> viewModel.updateAppColor(color) },
-                rotateAction = { viewModel.increaseRotation() }
+    fun MainScreen() {
+        MaterialTheme.colorScheme.background.let { initialBackground ->
+            LaunchedEffect(initialBackground) {
+                viewModel.updateAppBackgroundColor(initialBackground)
+            }
+        }
+        Scaffold(
+            topBar = { MainTopBar() },
+            modifier = Modifier
+                .fillMaxSize()
+        ) { innerPadding ->
+            ScreenDimensionsUpdater { screenSize -> viewModel.updateScreenSize(screenSize) }
+            CentralView(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .background(viewModel.appBackground.collectAsState().value)
             )
+        }
+    }
+
+    @Composable
+    fun CentralView(modifier: Modifier = Modifier) {
+        Column(modifier.fillMaxSize()) {
             // image
             val loresBitmap = viewModel.loresBitmap.collectAsState()
             ProcessedImageDisplay(loresBitmap.value, modifier = Modifier.weight(1f))
             // aspect ratio
             OptionsRow(
                 setAspectRatio = { aspectRatio -> viewModel.setAspectRatio(aspectRatio) },
-                setColor = { color -> viewModel.setColor(color) },
+                setColor = { color -> viewModel.setRenderColor(color) },
                 setSections = { separators -> viewModel.setSections(separators) }
             )
         }
@@ -162,6 +158,14 @@ class MainActivity : ComponentActivity() {
         val callForOutput = exportCallbackFactory()
         val hiresBitmap = viewModel.hiresBitmap.collectAsState()
 
+        // for flipaction
+        val normalColor = MaterialTheme.colorScheme.background
+        val flippedColor = MaterialTheme.colorScheme.onBackground
+        val currentColor = viewModel.appBackground.collectAsState()
+        LaunchedEffect(Unit) {
+            viewModel.updateAppBackgroundColor(normalColor)
+        }
+
         ChopTopBar(
             outputAvailable = hiresBitmap.value != null,
             importAction = { callForInput() },
@@ -169,6 +173,16 @@ class MainActivity : ComponentActivity() {
                 hiresBitmap.value?.let { bitmap ->
                     viewModel.launchExports(bitmap, callForOutput)
                 }
+            },
+            rotateAction = { viewModel.increaseRotation() },
+            flipAction = {
+                viewModel.updateAppBackgroundColor(
+                    if (currentColor.value == normalColor) {
+                        flippedColor
+                    } else {
+                        normalColor
+                    }
+                )
             }
         )
     }

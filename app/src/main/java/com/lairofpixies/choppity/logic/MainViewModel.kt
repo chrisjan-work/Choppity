@@ -128,7 +128,7 @@ class MainViewModel(
         }
     }
 
-    fun setColor(newColor: Color) {
+    fun setRenderColor(newColor: Color) {
         viewModelScope.launch {
             _processParams.emit(processParams.value.copy(bgColor = newColor))
         }
@@ -141,7 +141,7 @@ class MainViewModel(
         }
     }
 
-    fun updateAppColor(color: Color) {
+    fun updateAppBackgroundColor(color: Color) {
         viewModelScope.launch {
             _appBackground.emit(color)
         }
