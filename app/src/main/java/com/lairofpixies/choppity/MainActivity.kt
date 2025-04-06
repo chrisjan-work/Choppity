@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -53,6 +54,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 Scaffold(
+                    topBar = { MainTopBar() },
                     modifier = Modifier
                         .fillMaxSize()
                 ) { innerPadding ->
@@ -78,6 +80,23 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(newIntent: Intent?) {
         super.onNewIntent(newIntent)
         parseIntent(newIntent)
+    }
+
+    @Composable
+    fun importCallbackFactory(): () -> Unit {
+        var inputUri by remember { mutableStateOf<Uri?>(null) }
+
+        val pickImageLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                uri?.let { inputUri = it }
+            }
+
+        LaunchedEffect(inputUri) {
+            val uri = inputUri ?: return@LaunchedEffect
+            viewModel.importImage(uri)
+        }
+
+        return { pickImageLauncher.launch(Constants.MIMETYPE_IMAGE) }
     }
 
     @Composable
@@ -108,9 +127,6 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun MainScreen(modifier: Modifier = Modifier) {
-
-        val callForOutput = exportCallbackFactory()
-
         Column(modifier.fillMaxSize()) {
             // Input
             val inputUri = viewModel.inputUri.collectAsState()
@@ -119,12 +135,6 @@ class MainActivity : ComponentActivity() {
                 inputUri = inputUri.value,
                 outputAvailable = hiresBitmap.value != null,
                 flipAppColor = { color -> viewModel.updateAppColor(color) },
-                importAction = { uri -> viewModel.importImage(uri) },
-                exportAction = {
-                    hiresBitmap.value?.let { bitmap ->
-                        viewModel.launchExports(bitmap, callForOutput)
-                    }
-                },
                 rotateAction = { viewModel.increaseRotation() }
             )
             // image
@@ -146,4 +156,20 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    fun MainTopBar() {
+        val callForInput = importCallbackFactory()
+        val callForOutput = exportCallbackFactory()
+        val hiresBitmap = viewModel.hiresBitmap.collectAsState()
+
+        ChopTopBar(
+            outputAvailable = hiresBitmap.value != null,
+            importAction = { callForInput() },
+            exportAction = {
+                hiresBitmap.value?.let { bitmap ->
+                    viewModel.launchExports(bitmap, callForOutput)
+                }
+            }
+        )
+    }
 }

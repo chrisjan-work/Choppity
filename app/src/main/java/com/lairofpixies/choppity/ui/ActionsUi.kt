@@ -35,19 +35,19 @@ fun ActionRow(
     inputUri: Uri?,
     outputAvailable: Boolean,
     flipAppColor: (Color) -> Unit,
-    importAction: (Uri) -> Unit,
-    exportAction: () -> Unit,
+//    importAction: (Uri) -> Unit,
+//    exportAction: () -> Unit,
     rotateAction: () -> Unit,
 ) {
     Column {
         Row {
-            ImportButton { newUri ->
-                importAction(newUri)
-            }
+//            ImportButton { newUri ->
+//                importAction(newUri)
+//            }
 
-            if (inputUri != null && outputAvailable) {
-                ExportButton(exportAction)
-            }
+//            if (inputUri != null && outputAvailable) {
+//                ExportButton(exportAction)
+//            }
         }
 
         Row {
@@ -58,25 +58,25 @@ fun ActionRow(
         }
     }
 }
-
-@Composable
-fun ImportButton(uriSelected: (uri: Uri) -> Unit) {
-    val pickImageLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let { uriSelected(it) }
-        }
-
-    Button(onClick = { pickImageLauncher.launch(Constants.MIMETYPE_IMAGE) }) {
-        Text("Pick Image")
-    }
-}
-
-@Composable
-fun ExportButton(launchExport: () -> Unit) {
-    Button(onClick = launchExport) {
-        Text("Export")
-    }
-}
+//
+//@Composable
+//fun ImportButton(uriSelected: (uri: Uri) -> Unit) {
+//    val pickImageLauncher =
+//        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+//            uri?.let { uriSelected(it) }
+//        }
+//
+//    Button(onClick = { pickImageLauncher.launch(Constants.MIMETYPE_IMAGE) }) {
+//        Text("Pick Image")
+//    }
+//}
+//
+//@Composable
+//fun ExportButton(launchExport: () -> Unit) {
+//    Button(onClick = launchExport) {
+//        Text("Export")
+//    }
+//}
 
 @Composable
 fun RotateButton(rotateAction: () -> Unit) {
