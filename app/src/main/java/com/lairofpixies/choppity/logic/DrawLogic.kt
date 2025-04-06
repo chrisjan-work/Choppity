@@ -2,6 +2,7 @@ package com.lairofpixies.choppity.logic
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.graphics.Paint
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -106,12 +107,12 @@ internal fun renderHires(inputBitmap: Bitmap, params: ProcessParams): Bitmap {
     return processedBitmap
 }
 
-internal fun downsizeBitmap(hiresBitmap: Bitmap, screenDimensions: Size): Bitmap {
+internal fun downsizeBitmap(hiresBitmap: Bitmap, params: ProcessParams): Bitmap {
     require(hiresBitmap.width > 0 && hiresBitmap.height > 0)
-    require(screenDimensions.width > 0 && screenDimensions.height > 0)
+    require(params.screenDimensions.width > 0 && params.screenDimensions.height > 0)
     val scaleFactor: Float = min(
-        screenDimensions.width / hiresBitmap.width,
-        screenDimensions.height / hiresBitmap.height
+        params.screenDimensions.width / hiresBitmap.width,
+        params.screenDimensions.height / hiresBitmap.height
     )
     val outputDimensions = Size(
         hiresBitmap.width * scaleFactor,
@@ -125,7 +126,20 @@ internal fun downsizeBitmap(hiresBitmap: Bitmap, screenDimensions: Size): Bitmap
         setScale(scaleFactor, scaleFactor) // Scale down to 10% of original size
     }
 
+    // draw the bitmap
     canvas.drawBitmap(hiresBitmap, matrix, null)
+    // draw the separators in the output
+    if (params.sectionCount > 1) {
+        val paint = Paint().apply {
+            color = params.bgColor.toArgb()  // Set line color
+            strokeWidth = 1f     // Line thickness
+            isAntiAlias = true   // Smooth edges
+        }
+        for (i in 1 until params.sectionCount) {
+            val x = outputDimensions.width * i / params.sectionCount
+            canvas.drawLine(x, 0f, x, outputDimensions.height, paint)
+        }
+    }
 
     return resizedBitmap
 }

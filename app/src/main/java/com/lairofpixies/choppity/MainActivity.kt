@@ -89,7 +89,8 @@ class MainActivity : ComponentActivity() {
             // aspect ratio
             OptionsRow(
                 setAspectRatio = { aspectRatio -> viewModel.setAspectRatio(aspectRatio) },
-                setColor = { color -> viewModel.setColor(color) }
+                setColor = { color -> viewModel.setColor(color) },
+                setSections = { separators -> viewModel.setSections(separators) }
             )
         }
     }

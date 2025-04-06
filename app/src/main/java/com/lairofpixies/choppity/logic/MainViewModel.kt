@@ -39,7 +39,8 @@ class MainViewModel(
             aspectRatio = Size(1f, 1f),
             bgColor = Color.Black,
             screenDimensions = Size(1920f, 1080f),
-            turns = Constants.Rotations.none
+            turns = Constants.Rotations.none,
+            sectionCount = 1
         )
     )
     val processParams = _processParams.asStateFlow()
@@ -70,7 +71,8 @@ class MainViewModel(
                     aspectRatio = calculateDefaultAspectRatio(bitmap),
                     bgColor = processParams.value.bgColor,
                     screenDimensions = processParams.value.screenDimensions,
-                    turns = Constants.Rotations.none
+                    turns = Constants.Rotations.none,
+                    sectionCount = 1
                 )
 
                 mutex.withLock {
@@ -104,7 +106,7 @@ class MainViewModel(
         params: ProcessParams,
     ) {
         val processedBitmap = renderHires(inputBitmap, params)
-        val downsizedBitmap = downsizeBitmap(processedBitmap, params.screenDimensions)
+        val downsizedBitmap = downsizeBitmap(processedBitmap, params)
 
         mutex.withLock {
             _hiresBitmap.emit(processedBitmap)
@@ -140,6 +142,12 @@ class MainViewModel(
     fun updateAppColor(color: Color) {
         viewModelScope.launch {
             _appBackground.emit(color)
+        }
+    }
+
+    fun setSections(sectionCount: Int) {
+        viewModelScope.launch {
+            _processParams.emit(processParams.value.copy(sectionCount = sectionCount))
         }
     }
 

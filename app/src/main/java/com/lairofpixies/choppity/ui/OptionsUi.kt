@@ -23,10 +23,12 @@ import com.lairofpixies.choppity.Constants
 fun OptionsRow(
     setAspectRatio: (Size) -> Unit,
     setColor: (Color) -> Unit,
+    setSections: (Int) -> Unit,
 ) {
     Column {
         AspectRatioRow(setAspectRatio)
         ColorRow(setColor)
+        SectionRow(setSections)
     }
 }
 
@@ -79,6 +81,29 @@ fun ColorRow(
                         .size(52.dp, 32.dp)
                         .background(color)
                 )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun SectionRow(
+    setSections: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        (1 .. 10).forEach { count ->
+            Button(
+                onClick = {
+                    setSections(count)
+                },
+                modifier = Modifier.widthIn(72.dp)
+            ) {
+                Text(text = count.toString())
             }
         }
     }

@@ -8,5 +8,6 @@ data class ProcessParams(
     val aspectRatio: Size,
     val bgColor: Color,
     val screenDimensions: Size,
-    val turns: Constants.Rotations
+    val turns: Constants.Rotations,
+    val sectionCount: Int
 )
