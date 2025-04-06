@@ -50,7 +50,7 @@ class MainViewModel(
         }
     }
 
-    fun loadImage(uri: Uri?) {
+    fun importImage(uri: Uri?) {
         viewModelScope.launch {
             _inputUri.emit(uri)
         }
