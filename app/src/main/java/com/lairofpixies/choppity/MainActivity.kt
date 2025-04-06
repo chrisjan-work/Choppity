@@ -108,12 +108,13 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun MainScreen(modifier: Modifier = Modifier) {
-        Column(modifier) {
+        Column(modifier.fillMaxSize()) {
             // Input
             ActionRow(viewModel)
             // image
-            ProcessedImageDisplay(viewModel)
+            ProcessedImageDisplay(viewModel, modifier = Modifier.weight(1f))
             // aspect ratio
+            OptionsRow(viewModel)
         }
     }
 
@@ -121,6 +122,13 @@ class MainActivity : ComponentActivity() {
     fun ActionRow(viewModel: MainViewModel) {
         Row {
             LoadButton(viewModel)
+        }
+    }
+
+    @Composable
+    fun OptionsRow(viewModel: MainViewModel) {
+        Column {
+            AspectRatioRow(viewModel)
         }
     }
 
@@ -137,15 +145,35 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ProcessedImageDisplay(viewModel: MainViewModel) {
+    fun ProcessedImageDisplay(viewModel: MainViewModel, modifier: Modifier = Modifier) {
         val bitmap = viewModel.loresBitmap.collectAsState().value
 
-        if (bitmap != null) {
-            ZoomableBitmap(bitmap)
-        } else {
-            Text(text = "No image loaded")
+        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            if (bitmap != null) {
+                ZoomableBitmap(bitmap)
+            } else {
+                Text(text = "No image loaded")
+            }
         }
+    }
 
+    @OptIn(ExperimentalLayoutApi::class)
+    @Composable
+    fun AspectRatioRow(viewModel: MainViewModel, modifier: Modifier = Modifier) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            MainViewModel.ASPECT_RATIOS.forEach { ar ->
+                Button(onClick = {
+//                    widthFactor = ar.first.toFloat(); heightFactor = ar.second.toFloat()
+                    viewModel.setAspectRatio(Size(ar.first.toFloat(), ar.second.toFloat()))
+                }) {
+                    Text("${ar.first}:${ar.second}")
+                }
+            }
+
+        }
     }
 
     @Composable
@@ -259,29 +287,29 @@ class MainActivity : ComponentActivity() {
 //    }
 
 
-    @Composable
-    fun ImageOutputScreen(modifier: Modifier = Modifier) {
-        var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-
-        val pickImageLauncher =
-            rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-                selectedImageUri = uri
-            }
-
-        Column(modifier) {
-            Button(onClick = { pickImageLauncher.launch(MIMETYPE_IMAGE) }) {
-                Text("Pick Image")
-            }
-            //... your image display...
-
-            ImageExportScreen(imageUri = selectedImageUri)
-
-//            DisplayPickedImage(imageUri = selectedImageUri)
-            BorderedImageScreen(selectedImageUri)
-
-        }
-
-    }
+//    @Composable
+//    fun ImageOutputScreen(modifier: Modifier = Modifier) {
+//        var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+//
+//        val pickImageLauncher =
+//            rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+//                selectedImageUri = uri
+//            }
+//
+//        Column(modifier) {
+//            Button(onClick = { pickImageLauncher.launch(MIMETYPE_IMAGE) }) {
+//                Text("Pick Image")
+//            }
+//            //... your image display...
+//
+//            ImageExportScreen(imageUri = selectedImageUri)
+//
+////            DisplayPickedImage(imageUri = selectedImageUri)
+//            BorderedImageScreen(selectedImageUri)
+//
+//        }
+//
+//    }
 
     /* V3 */
 
@@ -329,7 +357,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ZoomableBitmap(bitmap: Bitmap) {
+    fun ZoomableBitmap(bitmap: Bitmap, modifier: Modifier = Modifier) {
         val context = LocalContext.current
         var scale by remember { mutableFloatStateOf(MINIMUM_ZOOM) }
         var offset by remember { mutableStateOf(Offset.Zero) }
@@ -363,7 +391,7 @@ class MainActivity : ComponentActivity() {
             contentDescription = "Zoomable Image",
             imageLoader = imageLoader,
             contentScale = ContentScale.Fit, // Or other ContentScale options
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectTapGestures(onDoubleTap = {
@@ -385,49 +413,70 @@ class MainActivity : ComponentActivity() {
 
     /* v4 */
 
-    @Composable
-    fun BorderedImage(
-        imageUri: Uri,
-        widthFactor: Float,
-        heightFactor: Float,
-        modifier: Modifier = Modifier,
-        backgroundColor: Color = Color.Black,
-    ) {
-        val context = LocalContext.current
-        var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-        var canvasSize by remember { mutableStateOf(IntSize.Zero) }
-
-        LaunchedEffect(imageUri, widthFactor, heightFactor) {
-            imageBitmap = loadImageBitmap(context, imageUri)
-        }
-
-        if (imageBitmap != null) {
-            val originalWidth = imageBitmap!!.width.toFloat()
-            val originalHeight = imageBitmap!!.height.toFloat()
-            Box(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .aspectRatio(widthFactor / heightFactor)
-                    .onSizeChanged { canvasSize = it }
-            ) {
-                val expandedCanvasWidth =
-                    floor(max(originalWidth, originalHeight * widthFactor / heightFactor))
-                val expandedCanvasHeight =
-                    floor(max(originalHeight, originalWidth * heightFactor / widthFactor))
-
-                val offsetX = (expandedCanvasWidth - originalWidth) / 2f
-                val offsetY = (expandedCanvasHeight - originalHeight) / 2f
-
+//    @Composable
+//    fun BorderedImage(
+//        imageUri: Uri,
+//        widthFactor: Float,
+//        heightFactor: Float,
+//        modifier: Modifier = Modifier,
+//        backgroundColor: Color = Color.Black,
+//    ) {
+//        val context = LocalContext.current
+//        var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+//        var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 //
-//                val outputBitmap =
-//                    ImageBitmap(expandedCanvasWidth.toInt(), expandedCanvasHeight.toInt())
-//                val nativeCanvas = Canvas(outputBitmap)
-//                val canvasDrawScope = CanvasDrawScope()
-//                canvasDrawScope.draw(
-//                    density = LocalDensity.current,
-//                    layoutDirection = LayoutDirection.Ltr,
-//                    canvas = nativeCanvas,
-//                    size = Size(expandedCanvasWidth, expandedCanvasHeight)
+//        LaunchedEffect(imageUri, widthFactor, heightFactor) {
+//            imageBitmap = loadImageBitmap(context, imageUri)
+//        }
+//
+//        if (imageBitmap != null) {
+//            val originalWidth = imageBitmap!!.width.toFloat()
+//            val originalHeight = imageBitmap!!.height.toFloat()
+//            Box(
+//                modifier = modifier
+//                    .fillMaxWidth()
+//                    .aspectRatio(widthFactor / heightFactor)
+//                    .onSizeChanged { canvasSize = it }
+//            ) {
+//                val expandedCanvasWidth =
+//                    floor(max(originalWidth, originalHeight * widthFactor / heightFactor))
+//                val expandedCanvasHeight =
+//                    floor(max(originalHeight, originalWidth * heightFactor / widthFactor))
+//
+//                val offsetX = (expandedCanvasWidth - originalWidth) / 2f
+//                val offsetY = (expandedCanvasHeight - originalHeight) / 2f
+//
+////
+////                val outputBitmap =
+////                    ImageBitmap(expandedCanvasWidth.toInt(), expandedCanvasHeight.toInt())
+////                val nativeCanvas = Canvas(outputBitmap)
+////                val canvasDrawScope = CanvasDrawScope()
+////                canvasDrawScope.draw(
+////                    density = LocalDensity.current,
+////                    layoutDirection = LayoutDirection.Ltr,
+////                    canvas = nativeCanvas,
+////                    size = Size(expandedCanvasWidth, expandedCanvasHeight)
+////                ) {
+////                    drawRect(
+////                        color = backgroundColor,
+////                        size = Size(expandedCanvasWidth, expandedCanvasHeight)
+////                    ) // Draw background
+////                    translate(left = offsetX, top = offsetY) {
+////                        drawImage(
+////                            image = imageBitmap!!
+////                        )
+////                    }
+////                }
+////
+////                Image(outputBitmap, "result", modifier = Modifier.fillMaxSize())
+////            }
+//
+//
+//                Canvas(
+//                    modifier = Modifier.scale(
+//                        canvasSize.width / expandedCanvasWidth,
+//                        canvasSize.height / expandedCanvasHeight
+//                    )
 //                ) {
 //                    drawRect(
 //                        color = backgroundColor,
@@ -439,86 +488,65 @@ class MainActivity : ComponentActivity() {
 //                        )
 //                    }
 //                }
-//
-//                Image(outputBitmap, "result", modifier = Modifier.fillMaxSize())
 //            }
+//        } else {
+//            // Placeholder while loading
+//            Text("Loading...")
+//        }
+//    }
+
+//    private suspend fun loadImageBitmap(context: Context, uri: Uri): ImageBitmap? =
+//        withContext(Dispatchers.IO) {
+//            val loader = ImageLoader(context)
+//            val request = ImageRequest.Builder(context)
+//                .data(uri)
+//                .build()
+//
+//            val result = loader.execute(request)
+//            if (result is SuccessResult) {
+//                result.drawable.toBitmap().asImageBitmap()
+//            } else {
+//                null
+//            }
+//        }
 
 
-                Canvas(
-                    modifier = Modifier.scale(
-                        canvasSize.width / expandedCanvasWidth,
-                        canvasSize.height / expandedCanvasHeight
-                    )
-                ) {
-                    drawRect(
-                        color = backgroundColor,
-                        size = Size(expandedCanvasWidth, expandedCanvasHeight)
-                    ) // Draw background
-                    translate(left = offsetX, top = offsetY) {
-                        drawImage(
-                            image = imageBitmap!!
-                        )
-                    }
-                }
-            }
-        } else {
-            // Placeholder while loading
-            Text("Loading...")
-        }
-    }
-
-    private suspend fun loadImageBitmap(context: Context, uri: Uri): ImageBitmap? =
-        withContext(Dispatchers.IO) {
-            val loader = ImageLoader(context)
-            val request = ImageRequest.Builder(context)
-                .data(uri)
-                .build()
-
-            val result = loader.execute(request)
-            if (result is SuccessResult) {
-                result.drawable.toBitmap().asImageBitmap()
-            } else {
-                null
-            }
-        }
-
-
-    @OptIn(ExperimentalLayoutApi::class)
-    @Composable
-    fun BorderedImageScreen(imageUri: Uri?) {
-        var widthFactor by remember { mutableFloatStateOf(16f) }
-        var heightFactor by remember { mutableFloatStateOf(9f) }
-
-        Column(Modifier.fillMaxSize()) {
-            if (imageUri != null) {
-                BorderedImage(
-                    imageUri = imageUri,
-                    widthFactor = widthFactor,
-                    heightFactor = heightFactor,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                )
-
-                // Optional controls to change widthFactor and heightFactor
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    aspectRatios.forEach { ar ->
-                        Button(onClick = {
-                            widthFactor = ar.first.toFloat(); heightFactor = ar.second.toFloat()
-                        }) {
-                            Text("${ar.first}:${ar.second}")
-                        }
-                    }
-
-                }
-            } else {
-                Text("No Image Selected", modifier = Modifier.align(Alignment.CenterHorizontally))
-            }
-        }
-    }
+//    @OptIn(ExperimentalLayoutApi::class)
+//    @Composable
+//    fun BorderedImageScreen(imageUri: Uri?) {
+//        var widthFactor by remember { mutableFloatStateOf(16f) }
+//        var heightFactor by remember { mutableFloatStateOf(9f) }
+//
+//        Column(Modifier.fillMaxSize()) {
+//            if (imageUri != null) {
+//                BorderedImage(
+//                    imageUri = imageUri,
+//                    widthFactor = widthFactor,
+//                    heightFactor = heightFactor,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .weight(1f)
+//                )
+//
+//                // Optional controls to change widthFactor and heightFactor
+//                FlowRow(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.SpaceEvenly
+//                ) {
+//                    MainViewModel.ASPECT_RATIOS.forEach { ar ->
+//                        Button(onClick = {
+//                            widthFactor = ar.first.toFloat(); heightFactor = ar.second.toFloat()
+//                        }) {
+//                            Text("${ar.first}:${ar.second}")
+//                        }
+//                    }
+//
+//                }
+//            } else {
+//                Text("No Image Selected", modifier = Modifier.align(Alignment.CenterHorizontally))
+//            }
+//        }
+//    }
 
     /* V5 */
     private fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
@@ -612,16 +640,6 @@ class MainActivity : ComponentActivity() {
         const val RESET_ZOOM_ON_RELEASE = false
         private const val MINIMUM_ZOOM = 1f
         private const val MAXIMUM_ZOOM = 20f
-        val aspectRatios = listOf(
-            3 to 4,
-            5 to 6,
-            1 to 1,
-            6 to 5,
-            4 to 3,
-            7 to 5,
-            3 to 2,
-            16 to 9,
-            20 to 9,
-        )
+
     }
 }

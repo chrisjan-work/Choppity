@@ -13,7 +13,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -24,6 +27,9 @@ class MainViewModel(
 
     private val _inputUri = MutableStateFlow<Uri?>(null)
     val inputUri = _inputUri.asStateFlow()
+
+    private val _loadedBitmap = MutableStateFlow<Bitmap?>(null)
+    val loadedBitmap = _loadedBitmap.asStateFlow()
 
     private val _outputBitmap = MutableStateFlow<Bitmap?>(null)
     val outputBitmap = _outputBitmap.asStateFlow()
@@ -38,24 +44,69 @@ class MainViewModel(
     private val _screenDimensions = MutableStateFlow(Size(1920f, 1080f))
     val screenDimensions = _screenDimensions.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            listenToParameterChanges()
+        }
+    }
+
     fun loadImage(uri: Uri?) {
         viewModelScope.launch {
             _inputUri.emit(uri)
-            if (uri == null) return@launch
-
-            val loadedBitmap = loadBitmapFromUri(context, uri)
-            if (loadedBitmap == null) {
-                _outputBitmap.emit(null)
-                return@launch
-            }
-
-            val desiredDimensions = calculateDimensions(loadedBitmap, aspectRatio.value)
-            val processedBitmap = createResizedBitmap(loadedBitmap, desiredDimensions, Color.Black)
-            _outputBitmap.emit(processedBitmap)
-
-            val downsizedBitmap = downsizeBitmap(processedBitmap, screenDimensions.value)
-            _loresBitmap.emit(downsizedBitmap)
         }
+    }
+
+    private val mutex = Mutex()
+    private fun listenToParameterChanges() {
+        viewModelScope.launch {
+            inputUri.collect { uri ->
+                val bitmap = uri?.let { loadBitmapFromUri(context, uri) }
+                if (bitmap == null) {
+                    _loadedBitmap.emit(null)
+                    return@collect
+                }
+
+                val ratio = calculateDefaultAspectRatio(bitmap)
+                mutex.withLock {
+                    _loadedBitmap.emit(bitmap)
+                    _aspectRatio.emit(ratio)
+                }
+            }
+        }
+        viewModelScope.launch {
+            combine(loadedBitmap, aspectRatio, screenDimensions) { bitmap, ratio, dimensions ->
+                if (bitmap == null) {
+                    clearImage()
+                } else {
+                    renderImage(bitmap, ratio, dimensions)
+                }
+            }.collect {}
+        }
+    }
+
+    private fun calculateDefaultAspectRatio(bitmap: Bitmap): Size {
+        return ASPECT_RATIOS.map {
+            Size(it.first.toFloat(), it.second.toFloat())
+        }.minByOrNull {
+            val newDimensions = calculateDimensions(bitmap, it)
+            val dx = bitmap.width - newDimensions.width
+            val dy = bitmap.height - newDimensions.height
+            (dx * dx) + (dy * dy) // quadratic error
+        } ?: Size(1f, 1f)
+    }
+
+    private suspend fun clearImage() {
+        _outputBitmap.emit(null)
+        _loresBitmap.emit(null)
+    }
+
+    private suspend fun renderImage(inputBitmap: Bitmap, ratio: Size, dimensions: Size) {
+        val desiredDimensions = calculateDimensions(inputBitmap, ratio)
+        val processedBitmap = createResizedBitmap(inputBitmap, desiredDimensions, Color.Black)
+        _outputBitmap.emit(processedBitmap)
+
+        val downsizedBitmap = downsizeBitmap(processedBitmap, dimensions)
+        _loresBitmap.emit(downsizedBitmap)
     }
 
     private fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
@@ -122,9 +173,13 @@ class MainViewModel(
             screenDimensions.width / hiresBitmap.width,
             screenDimensions.height / hiresBitmap.height
         )
+        val outputDimensions = Size(
+            hiresBitmap.width * scaleFactor,
+            hiresBitmap.height * scaleFactor
+        )
 
         val resizedBitmap =
-            createBitmap(screenDimensions.width.toInt(), screenDimensions.height.toInt())
+            createBitmap(outputDimensions.width.toInt(), outputDimensions.height.toInt())
         val canvas = android.graphics.Canvas(resizedBitmap)
         val matrix = Matrix().apply {
             setScale(scaleFactor, scaleFactor) // Scale down to 10% of original size
@@ -139,5 +194,25 @@ class MainViewModel(
         viewModelScope.launch {
             _screenDimensions.emit(screenDimensionsInPx)
         }
+    }
+
+    fun setAspectRatio(newAspectRatio: Size) {
+        viewModelScope.launch {
+            _aspectRatio.emit(newAspectRatio)
+        }
+    }
+
+    companion object {
+        val ASPECT_RATIOS = listOf(
+            3 to 4,
+            5 to 6,
+            1 to 1,
+            6 to 5,
+            4 to 3,
+            7 to 5,
+            3 to 2,
+            16 to 9,
+            20 to 9,
+        )
     }
 }
