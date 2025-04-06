@@ -2,6 +2,8 @@ package com.lairofpixies.choppity
 
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -12,6 +14,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
@@ -20,6 +23,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +33,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -44,11 +49,15 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import coil.ImageLoader
 import coil.compose.AsyncImage
@@ -57,22 +66,86 @@ import coil.request.SuccessResult
 import com.lairofpixies.choppity.ui.theme.ChoppityTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.IOException
+import kotlin.math.floor
 import kotlin.math.max
 
 
 class MainActivity : ComponentActivity() {
+
+    //    val viewModel: MainViewModel by viewModels()
+    val viewModel = MainViewModel(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             ChoppityTheme {
+                ScreenDimensionsUpdater()
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ImageOutputScreen(modifier = Modifier.padding(innerPadding))
+                    MainScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
+    }
+
+    @Composable
+    fun ScreenDimensionsUpdater() {
+        val configuration = LocalConfiguration.current
+        val density = LocalDensity.current
+
+        val screenWidthPx = with(density) {
+            configuration.screenWidthDp.dp.roundToPx()
+        }
+        val screenHeightPx = with(density) {
+            configuration.screenHeightDp.dp.roundToPx()
+        }
+
+        val screenSize = Size(screenWidthPx.toFloat(), screenHeightPx.toFloat())
+        LaunchedEffect(Unit) {
+            viewModel.updateScreenSize(screenSize)
+        }
+    }
+
+    @Composable
+    fun MainScreen(modifier: Modifier = Modifier) {
+        Column(modifier) {
+            // Input
+            ActionRow(viewModel)
+            // image
+            ProcessedImageDisplay(viewModel)
+            // aspect ratio
+        }
+    }
+
+    @Composable
+    fun ActionRow(viewModel: MainViewModel) {
+        Row {
+            LoadButton(viewModel)
+        }
+    }
+
+    @Composable
+    fun LoadButton(viewModel: MainViewModel) {
+        val pickImageLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                uri?.let { viewModel.loadImage(it) }
+            }
+
+        Button(onClick = { pickImageLauncher.launch(MIMETYPE_IMAGE) }) {
+            Text("Pick Image")
+        }
+    }
+
+    @Composable
+    fun ProcessedImageDisplay(viewModel: MainViewModel) {
+        val bitmap = viewModel.loresBitmap.collectAsState().value
+
+        if (bitmap != null) {
+            ZoomableBitmap(bitmap)
+        } else {
+            Text(text = "No image loaded")
+        }
+
     }
 
     @Composable
@@ -88,13 +161,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
     @Composable
     fun ImageExportScreen(imageUri: Uri?) {
         val context = LocalContext.current
 
         var originalFileName by remember { mutableStateOf<String?>(null) }
         var suggestedOutputUri by remember { mutableStateOf<Uri?>(null) }
+        var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
         // Extract filename from Uri on composition if imageUri changes
         LaunchedEffect(imageUri) {
@@ -110,11 +183,10 @@ class MainActivity : ComponentActivity() {
 
         val exportImageLauncher =
             rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(MIMETYPE_IMAGE)) { outputUri: Uri? ->
-                if (outputUri != null && imageUri != null) {
-                    saveImage(context, imageUri, outputUri)
-                } else {
-                    // Handle cancellation or error (e.g., show a message)
-                }
+                // TODO: handle cancellations/missing images
+                val bimap = imageBitmap ?: return@rememberLauncherForActivityResult
+                val uri = outputUri ?: return@rememberLauncherForActivityResult
+                saveBitmapToUri(context, bitmap = bimap, uri = uri)
             }
 
         Column {
@@ -172,19 +244,19 @@ class MainActivity : ComponentActivity() {
         }
         return context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
     }
-
-    private fun saveImage(context: Context, inputUri: Uri, outputUri: Uri) {
-        try {
-            context.contentResolver.openInputStream(inputUri)?.use { input ->
-                context.contentResolver.openOutputStream(outputUri)?.use { output ->
-                    input.copyTo(output)
-                }
-            }
-            // Image saved successfully.  You might want to inform the user.
-        } catch (e: IOException) {
-            // Handle error (e.g., show a message)
-        }
-    }
+//
+//    private fun saveImage(context: Context, inputUri: Uri, outputUri: Uri) {
+//        try {
+//            context.contentResolver.openInputStream(inputUri)?.use { input ->
+//                context.contentResolver.openOutputStream(outputUri)?.use { output ->
+//                    input.copyTo(output)
+//                }
+//            }
+//            // Image saved successfully.  You might want to inform the user.
+//        } catch (e: IOException) {
+//            // Handle error (e.g., show a message)
+//        }
+//    }
 
 
     @Composable
@@ -256,6 +328,61 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    @Composable
+    fun ZoomableBitmap(bitmap: Bitmap) {
+        val context = LocalContext.current
+        var scale by remember { mutableFloatStateOf(MINIMUM_ZOOM) }
+        var offset by remember { mutableStateOf(Offset.Zero) }
+        val transformableState =
+            rememberTransformableState { zoomChange, panChange, _ ->
+                scale = (scale * zoomChange).coerceIn(MINIMUM_ZOOM, MAXIMUM_ZOOM)
+                offset += panChange
+            }
+
+        if (RESET_ZOOM_ON_RELEASE) {
+            LaunchedEffect(transformableState.isTransformInProgress) {
+                if (!transformableState.isTransformInProgress) {
+                    scale = 1.0f
+                    offset = Offset.Zero
+                }
+            }
+        }
+
+        val imageLoader = remember {
+            ImageLoader.Builder(context)
+                .bitmapConfig(Bitmap.Config.RGB_565) // Reduce memory usage
+                .allowHardware(false) // Force software rendering if needed
+                .build()
+        }
+
+        AsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(bitmap)
+                .size(bitmap.width, bitmap.height) // Original dimensions
+                .build(),
+            contentDescription = "Zoomable Image",
+            imageLoader = imageLoader,
+            contentScale = ContentScale.Fit, // Or other ContentScale options
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(onDoubleTap = {
+                        if (RESET_ZOOM_ON_DOUBLETAP) {
+                            scale = MINIMUM_ZOOM
+                            offset = Offset.Zero
+                        }
+                    })
+                }
+                .transformable(transformableState)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    translationX = offset.x
+                    translationY = offset.y
+                }
+        )
+    }
+
     /* v4 */
 
     @Composable
@@ -284,12 +411,38 @@ class MainActivity : ComponentActivity() {
                     .onSizeChanged { canvasSize = it }
             ) {
                 val expandedCanvasWidth =
-                    max(originalWidth, originalHeight * widthFactor / heightFactor)
+                    floor(max(originalWidth, originalHeight * widthFactor / heightFactor))
                 val expandedCanvasHeight =
-                    max(originalHeight, originalWidth * heightFactor / widthFactor)
+                    floor(max(originalHeight, originalWidth * heightFactor / widthFactor))
 
                 val offsetX = (expandedCanvasWidth - originalWidth) / 2f
                 val offsetY = (expandedCanvasHeight - originalHeight) / 2f
+
+//
+//                val outputBitmap =
+//                    ImageBitmap(expandedCanvasWidth.toInt(), expandedCanvasHeight.toInt())
+//                val nativeCanvas = Canvas(outputBitmap)
+//                val canvasDrawScope = CanvasDrawScope()
+//                canvasDrawScope.draw(
+//                    density = LocalDensity.current,
+//                    layoutDirection = LayoutDirection.Ltr,
+//                    canvas = nativeCanvas,
+//                    size = Size(expandedCanvasWidth, expandedCanvasHeight)
+//                ) {
+//                    drawRect(
+//                        color = backgroundColor,
+//                        size = Size(expandedCanvasWidth, expandedCanvasHeight)
+//                    ) // Draw background
+//                    translate(left = offsetX, top = offsetY) {
+//                        drawImage(
+//                            image = imageBitmap!!
+//                        )
+//                    }
+//                }
+//
+//                Image(outputBitmap, "result", modifier = Modifier.fillMaxSize())
+//            }
+
 
                 Canvas(
                     modifier = Modifier.scale(
@@ -314,7 +467,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private suspend fun loadImageBitmap(context: android.content.Context, uri: Uri): ImageBitmap? =
+    private suspend fun loadImageBitmap(context: Context, uri: Uri): ImageBitmap? =
         withContext(Dispatchers.IO) {
             val loader = ImageLoader(context)
             val request = ImageRequest.Builder(context)
@@ -328,6 +481,7 @@ class MainActivity : ComponentActivity() {
                 null
             }
         }
+
 
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
@@ -365,6 +519,92 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    /* V5 */
+    private fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            BitmapFactory.decodeStream(inputStream)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun createResizedBitmap(
+        originalBitmap: Bitmap,
+        targetWidth: Int,
+        targetHeight: Int
+    ): Bitmap {
+//        val resizedBitmap = createBitmap(targetWidth, targetHeight)
+        val resizedBitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(resizedBitmap)
+
+        // Calculate offsets to center the original image
+        val offsetX = (targetWidth - originalBitmap.width) / 2f
+        val offsetY = (targetHeight - originalBitmap.height) / 2f
+
+        // Draw the original bitmap centered in the new canvas
+        canvas.drawColor(Color.Black.toArgb()) // Optional: Fill background with white
+        canvas.drawBitmap(originalBitmap, offsetX, offsetY, null)
+
+        return resizedBitmap
+    }
+
+    @Composable
+    fun DisplayResizedImage(bitmap: Bitmap) {
+        val imageBitmap = bitmap.asImageBitmap()
+
+        Image(
+            bitmap = imageBitmap,
+            contentDescription = "Resized Image",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit
+        )
+    }
+
+    fun saveBitmapToUri(context: Context, bitmap: Bitmap, uri: Uri) {
+        try {
+            // TODO: display error
+            val outputStream = context.contentResolver.openOutputStream(uri) ?: return
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            outputStream.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun processAndDisplayImage(
+        context: Context,
+        inputUri: Uri,
+        outputUri: Uri,
+        targetWidth: Int,
+        targetHeight: Int,
+    ): Bitmap? {
+        // Step 1: Load original image
+        val originalBitmap = loadBitmapFromUri(context, inputUri) ?: return null
+
+        // Step 2: Create resized image
+        val resizedBitmap = createResizedBitmap(originalBitmap, targetWidth, targetHeight)
+
+        // Step 3: Save resized image to file
+        saveBitmapToUri(context, resizedBitmap, outputUri)
+
+        return resizedBitmap // Return for UI display or further processing
+    }
+
+
+    @Composable
+    fun MyImageScreen(context: Context, inputUri: Uri, outputUri: Uri) {
+        var resizedImage by remember { mutableStateOf<Bitmap?>(null) }
+
+        LaunchedEffect(Unit) {
+            resizedImage = processAndDisplayImage(context, inputUri, outputUri, 800, 600)
+        }
+
+        resizedImage?.let { DisplayResizedImage(bitmap = it) }
+    }
+
 
     companion object {
         const val MIMETYPE_IMAGE = "image/*"
