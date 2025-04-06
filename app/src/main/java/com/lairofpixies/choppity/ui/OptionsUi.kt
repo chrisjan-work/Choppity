@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.lairofpixies.choppity.Constants
 
+enum class OptionCategories{ ASPECT_RATIO, FILL_COLOR, SECTION_COUNT }
 
 @Composable
 fun OptionsRow(
@@ -47,7 +48,7 @@ fun AspectRatioRow(
                 onClick = {
                     setAspectRatio(Size(ar.first.toFloat(), ar.second.toFloat()))
                 },
-                modifier = Modifier.widthIn(80.dp)
+                modifier = Modifier.widthIn(60.dp)
             ) {
                 if (ar.first > 0 && ar.second > 0) {
                     Text("${ar.first}:${ar.second}")
@@ -73,12 +74,11 @@ fun ColorRow(
             Button(
                 onClick = {
                     setColor(color)
-                },
-//                modifier = Modifier.widthIn(120.dp)
+                }
             ) {
                 Box(
                     Modifier
-                        .size(52.dp, 32.dp)
+                        .size(36.dp, 24.dp)
                         .background(color)
                 )
             }
