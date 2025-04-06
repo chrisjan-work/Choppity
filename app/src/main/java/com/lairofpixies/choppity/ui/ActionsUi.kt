@@ -22,16 +22,14 @@ import com.lairofpixies.choppity.Constants
 
 @Composable
 fun ActionRow(
+    inputUri: Uri?,
     outputAvailable: Boolean,
     importAction: (Uri) -> Unit,
     exportAction: (Uri) -> Unit,
     rotateAction: () -> Unit,
 ) {
-    var inputUri by remember { mutableStateOf<Uri?>(null) }
-
     Row {
         ImportButton { newUri ->
-            inputUri = newUri
             importAction(newUri)
         }
 

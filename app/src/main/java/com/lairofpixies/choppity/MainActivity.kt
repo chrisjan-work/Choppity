@@ -1,5 +1,7 @@
 package com.lairofpixies.choppity
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,6 +26,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        parseIntent(intent)
+
         enableEdgeToEdge()
         setContent {
             ChoppityTheme {
@@ -35,20 +40,39 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun parseIntent(newIntent: Intent?) {
+        if (newIntent?.action in setOf(Intent.ACTION_SEND, Intent.ACTION_EDIT)) {
+            val importedUri =
+                newIntent?.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java) ?: return
+            viewModel.importImage(importedUri)
+        }
+    }
+
+    override fun onNewIntent(newIntent: Intent?) {
+        super.onNewIntent(newIntent)
+        parseIntent(newIntent)
+    }
+
     @Composable
     fun MainScreen(modifier: Modifier = Modifier) {
         Column(modifier.fillMaxSize()) {
             // Input
-            val bitmap = viewModel.hiresBitmap.collectAsState().value
+            val inputUri = viewModel.inputUri.collectAsState()
+            val hiresBitmap = viewModel.hiresBitmap.collectAsState()
             ActionRow(
-                outputAvailable = bitmap != null,
+                inputUri = inputUri.value,
+                outputAvailable = hiresBitmap.value != null,
                 importAction = { uri -> viewModel.importImage(uri) },
-                exportAction = { uri -> bitmap?.let { viewModel.saveBitmapToUri(bitmap, uri) } },
+                exportAction = { uri ->
+                    hiresBitmap.value?.let { bitmap ->
+                        viewModel.saveBitmapToUri(bitmap, uri)
+                    }
+                },
                 rotateAction = { viewModel.increaseRotation() }
             )
             // image
-            val loresBitmap = viewModel.loresBitmap.collectAsState().value
-            ProcessedImageDisplay(loresBitmap, modifier = Modifier.weight(1f))
+            val loresBitmap = viewModel.loresBitmap.collectAsState()
+            ProcessedImageDisplay(loresBitmap.value, modifier = Modifier.weight(1f))
             // aspect ratio
             OptionsRow(
                 setAspectRatio = { aspectRatio -> viewModel.setAspectRatio(aspectRatio) },
