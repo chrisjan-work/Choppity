@@ -101,7 +101,7 @@ fun ZoomableBitmap(bitmap: Bitmap, modifier: Modifier = Modifier) {
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures(onDoubleTap = {
-                    if (Constants.RESET_ZOOM_ON_DOUBLETAP) {
+                    if (Constants.RESET_ZOOM_ON_DOUBLE_TAP) {
                         scale = Constants.MINIMUM_ZOOM
                         offset = Offset.Zero
                     }

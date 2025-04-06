@@ -108,7 +108,7 @@ internal fun renderHires(inputBitmap: Bitmap, params: ProcessParams): Bitmap {
     return processedBitmap
 }
 
-internal fun downsizeBitmap(hiresBitmap: Bitmap, params: ProcessParams): Bitmap {
+internal fun downsizeBitmap(hiresBitmap: Bitmap, params: ProcessParams, lineColor: Color): Bitmap {
     require(hiresBitmap.width > 0 && hiresBitmap.height > 0)
     require(params.screenDimensions.width > 0 && params.screenDimensions.height > 0)
     val scaleFactor: Float = min(
@@ -132,9 +132,9 @@ internal fun downsizeBitmap(hiresBitmap: Bitmap, params: ProcessParams): Bitmap 
     // draw the separators in the output
     if (params.sectionCount > 1) {
         val paint = Paint().apply {
-            color = params.bgColor.toArgb()  // Set line color
+            color = lineColor.toArgb()  // Set line color
             strokeWidth = 1f     // Line thickness
-            isAntiAlias = true   // Smooth edges
+            isAntiAlias = false   // Smooth edges
         }
         for (i in 1 until params.sectionCount) {
             val x = outputDimensions.width * i / params.sectionCount

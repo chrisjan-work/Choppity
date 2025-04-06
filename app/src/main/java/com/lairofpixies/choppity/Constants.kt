@@ -4,8 +4,8 @@ import androidx.compose.ui.graphics.Color
 
 object Constants {
     // Zoom controls
-    const val RESET_ZOOM_ON_DOUBLETAP = false
-    const val RESET_ZOOM_ON_RELEASE = true
+    const val RESET_ZOOM_ON_DOUBLE_TAP = true
+    const val RESET_ZOOM_ON_RELEASE = false
     const val MINIMUM_ZOOM = 1f
     const val MAXIMUM_ZOOM = 20f
 

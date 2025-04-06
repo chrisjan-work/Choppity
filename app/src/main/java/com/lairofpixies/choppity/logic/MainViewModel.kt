@@ -87,12 +87,13 @@ class MainViewModel(
         viewModelScope.launch {
             combine(
                 loadedBitmap,
-                processParams
-            ) { bitmap, params ->
+                processParams,
+                appBackground
+            ) { bitmap, params, lineColor ->
                 if (bitmap == null) {
                     clearImageFlows()
                 } else {
-                    renderImageFlows(bitmap, params)
+                    renderImageFlows(bitmap, params, lineColor)
                 }
             }.collect {}
         }
@@ -106,9 +107,10 @@ class MainViewModel(
     private suspend fun renderImageFlows(
         inputBitmap: Bitmap,
         params: ProcessParams,
+        lineColor: Color,
     ) {
         val processedBitmap = renderHires(inputBitmap, params)
-        val downsizedBitmap = downsizeBitmap(processedBitmap, params)
+        val downsizedBitmap = downsizeBitmap(processedBitmap, params, lineColor)
 
         mutex.withLock {
             _hiresBitmap.emit(processedBitmap)
