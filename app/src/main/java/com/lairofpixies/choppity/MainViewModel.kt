@@ -85,7 +85,7 @@ class MainViewModel(
     }
 
     private fun calculateDefaultAspectRatio(bitmap: Bitmap): Size {
-        return ASPECT_RATIOS.map {
+        return Constants.ASPECT_RATIOS.map {
             Size(it.first.toFloat(), it.second.toFloat())
         }.minByOrNull {
             val newDimensions = calculateDimensions(bitmap, it)
@@ -210,19 +210,5 @@ class MainViewModel(
         } catch (e: Exception) {
             e.printStackTrace()
         }
-    }
-
-    companion object {
-        val ASPECT_RATIOS = listOf(
-            3 to 4,
-            5 to 6,
-            1 to 1,
-            6 to 5,
-            4 to 3,
-            7 to 5,
-            3 to 2,
-            16 to 9,
-            20 to 9,
-        )
     }
 }

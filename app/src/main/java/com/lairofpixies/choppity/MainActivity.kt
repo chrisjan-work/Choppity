@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.lairofpixies.choppity.ui.LoadButton
 import com.lairofpixies.choppity.ui.theme.ChoppityTheme
 
 
@@ -102,7 +103,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun ActionRow(viewModel: MainViewModel) {
         Row {
-            LoadButton(viewModel)
+            LoadButton { viewModel.loadImage(it) }
             ExportButton(viewModel)
         }
     }
@@ -114,17 +115,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun LoadButton(viewModel: MainViewModel) {
-        val pickImageLauncher =
-            rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-                uri?.let { viewModel.loadImage(it) }
-            }
-
-        Button(onClick = { pickImageLauncher.launch(MIMETYPE_IMAGE) }) {
-            Text("Pick Image")
-        }
-    }
 
     @Composable
     fun ProcessedImageDisplay(viewModel: MainViewModel, modifier: Modifier = Modifier) {
@@ -146,7 +136,7 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            MainViewModel.ASPECT_RATIOS.forEach { ar ->
+            Constants.ASPECT_RATIOS.forEach { ar ->
                 Button(onClick = {
                     viewModel.setAspectRatio(Size(ar.first.toFloat(), ar.second.toFloat()))
                 }) {
@@ -183,7 +173,7 @@ class MainActivity : ComponentActivity() {
             val exportImageLauncher =
                 rememberLauncherForActivityResult(
                     ActivityResultContracts.CreateDocument(
-                        MIMETYPE_IMAGE
+                        Constants.MIMETYPE_IMAGE
                     )
                 ) { outputUri: Uri? ->
                     // TODO: handle cancellations/missing images
@@ -246,15 +236,16 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun ZoomableBitmap(bitmap: Bitmap, modifier: Modifier = Modifier) {
         val context = LocalContext.current
-        var scale by remember { mutableFloatStateOf(MINIMUM_ZOOM) }
+        var scale by remember { mutableFloatStateOf(Constants.MINIMUM_ZOOM) }
         var offset by remember { mutableStateOf(Offset.Zero) }
         val transformableState =
             rememberTransformableState { zoomChange, panChange, _ ->
-                scale = (scale * zoomChange).coerceIn(MINIMUM_ZOOM, MAXIMUM_ZOOM)
+                scale =
+                    (scale * zoomChange).coerceIn(Constants.MINIMUM_ZOOM, Constants.MAXIMUM_ZOOM)
                 offset += panChange
             }
 
-        if (RESET_ZOOM_ON_RELEASE) {
+        if (Constants.RESET_ZOOM_ON_RELEASE) {
             LaunchedEffect(transformableState.isTransformInProgress) {
                 if (!transformableState.isTransformInProgress) {
                     scale = 1.0f
@@ -282,8 +273,8 @@ class MainActivity : ComponentActivity() {
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectTapGestures(onDoubleTap = {
-                        if (RESET_ZOOM_ON_DOUBLETAP) {
-                            scale = MINIMUM_ZOOM
+                        if (Constants.RESET_ZOOM_ON_DOUBLETAP) {
+                            scale = Constants.MINIMUM_ZOOM
                             offset = Offset.Zero
                         }
                     })
@@ -296,13 +287,5 @@ class MainActivity : ComponentActivity() {
                     translationY = offset.y
                 }
         )
-    }
-
-    companion object {
-        const val MIMETYPE_IMAGE = "image/*"
-        const val RESET_ZOOM_ON_DOUBLETAP = true
-        const val RESET_ZOOM_ON_RELEASE = false
-        private const val MINIMUM_ZOOM = 1f
-        private const val MAXIMUM_ZOOM = 20f
     }
 }
