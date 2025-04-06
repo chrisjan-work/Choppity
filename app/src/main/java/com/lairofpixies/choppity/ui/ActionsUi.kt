@@ -9,16 +9,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import com.lairofpixies.choppity.Constants
-import com.lairofpixies.choppity.logic.DiskLogic
 
 
 @Composable
@@ -27,7 +23,7 @@ fun ActionRow(
     outputAvailable: Boolean,
     flipAppColor: (Color) -> Unit,
     importAction: (Uri) -> Unit,
-    exportAction: (Uri) -> Unit,
+    exportAction: () -> Unit,
     rotateAction: () -> Unit,
 ) {
     Column {
@@ -37,11 +33,7 @@ fun ActionRow(
             }
 
             if (inputUri != null && outputAvailable) {
-                ExportButton(
-                    contentUri = inputUri
-                ) { outputUri ->
-                    exportAction(outputUri)
-                }
+                ExportButton(exportAction)
             }
         }
 
@@ -67,35 +59,9 @@ fun ImportButton(uriSelected: (uri: Uri) -> Unit) {
 }
 
 @Composable
-fun ExportButton(contentUri: Uri?, onClick: (Uri) -> Unit) {
-    val context = LocalContext.current
-
-    var originalFileName by remember { mutableStateOf<String?>(null) }
-
-    // Extract filename from Uri on composition if imageUri changes
-    LaunchedEffect(contentUri) {
-        originalFileName = contentUri?.let { DiskLogic(context).getFileNameFromUri(contentUri) }
-    }
-
-    if (contentUri != null) {
-        val exportImageLauncher =
-            rememberLauncherForActivityResult(
-                ActivityResultContracts.CreateDocument(
-                    Constants.MIMETYPE_IMAGE
-                )
-            ) { outputUri: Uri? ->
-                // TODO: handle cancellations
-                outputUri?.let { onClick(it) }
-            }
-
-        Button(onClick = {
-            // Launch the file picker with a suggested filename and location
-            val suggestedFilename =
-                originalFileName?.replaceAfterLast('.', "JPG")?.replace(".", "_ed.")
-            exportImageLauncher.launch(suggestedFilename)
-        }) {
-            Text("Export")
-        }
+fun ExportButton(launchExport: () -> Unit) {
+    Button(onClick = launchExport) {
+        Text("Export")
     }
 }
 

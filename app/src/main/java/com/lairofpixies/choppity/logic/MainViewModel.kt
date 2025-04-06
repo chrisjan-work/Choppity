@@ -1,6 +1,5 @@
 package com.lairofpixies.choppity.logic
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.geometry.Size
@@ -152,24 +151,63 @@ class MainViewModel(
         }
     }
 
-    fun export(bitmap: Bitmap, uri: Uri) {
+//    fun _export(bitmap: Bitmap, uri: Uri) {
+//        if (processParams.value.sectionCount <= 1) {
+//            diskLogic.saveBitmapToUri(bitmap, uri)
+//        } else {
+//            TODO("doesn't quite work yet. The chopping part works, but writing files is not so easy")
+//            // chop in parts, save the parts
+//            viewModelScope.launch {
+//                val sections =
+//                    choppify(bitmap, processParams.value.sectionCount)
+//                val originalFilename = diskLogic.getFileNameFromUri(uri)
+//                for (section in sections.withIndex()) {
+//                    val sectionUri =
+//                        uri.toString()?.insertBeforeExtension("_${section.index}")?.toUri()
+//                    sectionUri?.let {
+//                        diskLogic.saveBitmapToUri(section.value, sectionUri)
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+    private val exportQueue = mutableListOf<()->Unit>()
+
+    private fun consumeNextExport() {
+        if (exportQueue.isNotEmpty()) {
+            val nextCallback = exportQueue.removeAt(0)
+            nextCallback.invoke()
+        }
+    }
+
+    fun exportSingle(bitmap: Bitmap, uri: Uri) {
+        diskLogic.saveBitmapToUri(bitmap, uri)
+        consumeNextExport()
+    }
+
+    fun launchExports(hiresBitmap: Bitmap, callback: (Bitmap, String) -> Unit) {
+        val shouldStartQueue = exportQueue.isEmpty()
+        val originalUri = inputUri.value ?: return
+        val originalFilename = diskLogic.getFileNameFromUri(originalUri) ?: "image.JPG"
+        val basicOutputFilename = originalFilename.insertBeforeExtension("_edit")
         if (processParams.value.sectionCount <= 1) {
-            diskLogic.saveBitmapToUri(bitmap, uri)
+            exportQueue.add {
+                callback(hiresBitmap, basicOutputFilename)
+            }
         } else {
-            TODO("doesn't quite work yet. The chopping part works, but writing files is not so easy")
-            // chop in parts, save the parts
-            viewModelScope.launch {
-                val sections =
-                    choppify(bitmap, processParams.value.sectionCount)
-                val originalFilename = diskLogic.getFileNameFromUri(uri)
-                for (section in sections.withIndex()) {
-                    val sectionUri =
-                        uri.toString()?.insertBeforeExtension("_${section.index}")?.toUri()
-                    sectionUri?.let {
-                        diskLogic.saveBitmapToUri(section.value, sectionUri)
-                    }
+            val sections =
+                choppify(hiresBitmap, processParams.value.sectionCount)
+            for ((index, sectionBitmap) in sections.withIndex()) {
+                exportQueue.add {
+                    val sectionFilename = basicOutputFilename.insertBeforeExtension("_$index")
+                    callback(sectionBitmap, sectionFilename)
                 }
             }
+        }
+
+        if (shouldStartQueue) {
+            consumeNextExport()
         }
     }
 }

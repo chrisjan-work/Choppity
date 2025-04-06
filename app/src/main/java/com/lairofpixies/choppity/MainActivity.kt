@@ -1,11 +1,14 @@
 package com.lairofpixies.choppity
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +18,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.lairofpixies.choppity.logic.DiskLogic
 import com.lairofpixies.choppity.logic.MainViewModel
@@ -49,7 +56,11 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                 ) { innerPadding ->
                     ScreenDimensionsUpdater { screenSize -> viewModel.updateScreenSize(screenSize) }
-                    MainScreen(modifier = Modifier.padding(innerPadding).background(viewModel.appBackground.collectAsState().value))
+                    MainScreen(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .background(viewModel.appBackground.collectAsState().value)
+                    )
                 }
             }
         }
@@ -69,7 +80,36 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
+    fun exportCallbackFactory(): (Bitmap, String) -> Unit {
+        var outputUri by remember { mutableStateOf<Uri?>(null) }
+        var partialBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+        val exportRequest = rememberLauncherForActivityResult(
+            ActivityResultContracts.CreateDocument(
+                Constants.MIMETYPE_IMAGE
+            )
+        ) { selectedUri: Uri? ->
+            selectedUri?.let { outputUri = selectedUri }
+        }
+
+        LaunchedEffect(outputUri) {
+            val exportUri = outputUri ?: return@LaunchedEffect
+            val exportBitmap = partialBitmap ?: return@LaunchedEffect
+            viewModel.exportSingle(exportBitmap, exportUri)
+        }
+
+        val callForOutput = { bitmap: Bitmap, suggestedFilename: String ->
+            partialBitmap = bitmap
+            exportRequest.launch(suggestedFilename)
+        }
+        return callForOutput
+    }
+
+    @Composable
     fun MainScreen(modifier: Modifier = Modifier) {
+
+        val callForOutput = exportCallbackFactory()
+
         Column(modifier.fillMaxSize()) {
             // Input
             val inputUri = viewModel.inputUri.collectAsState()
@@ -79,9 +119,9 @@ class MainActivity : ComponentActivity() {
                 outputAvailable = hiresBitmap.value != null,
                 flipAppColor = { color -> viewModel.updateAppColor(color) },
                 importAction = { uri -> viewModel.importImage(uri) },
-                exportAction = { uri ->
+                exportAction = {
                     hiresBitmap.value?.let { bitmap ->
-                        viewModel.export(bitmap, uri)
+                        viewModel.launchExports(bitmap, callForOutput)
                     }
                 },
                 rotateAction = { viewModel.increaseRotation() }
