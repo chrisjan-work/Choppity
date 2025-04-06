@@ -15,13 +15,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-data class ProcessParams(
-    val aspectRatio: Size,
-    val bgColor: Color,
-    val screenDimensions: Size,
-    val turns: Constants.Rotations
-)
-
 class MainViewModel(
     private val context: Context
 ) : ViewModel() {
