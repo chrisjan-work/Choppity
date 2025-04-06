@@ -24,7 +24,8 @@ import com.lairofpixies.choppity.Constants
 fun ActionRow(
     outputAvailable: Boolean,
     importAction: (Uri) -> Unit,
-    exportAction: (Uri) -> Unit
+    exportAction: (Uri) -> Unit,
+    rotateAction: () -> Unit,
 ) {
     var inputUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -40,6 +41,8 @@ fun ActionRow(
             ) { outputUri ->
                 exportAction(outputUri)
             }
+
+            RotateButton(rotateAction)
         }
     }
 }
@@ -135,4 +138,11 @@ private fun createSuggestedOutputUri(context: Context, imageUri: Uri): Uri? {
         ) // Or other directory
     }
     return context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+}
+
+@Composable
+fun RotateButton(rotateAction: () -> Unit) {
+    Button(onClick = rotateAction) {
+        Text("Rotate")
+    }
 }

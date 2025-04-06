@@ -43,7 +43,8 @@ class MainActivity : ComponentActivity() {
             ActionRow(
                 outputAvailable = bitmap != null,
                 importAction = { uri -> viewModel.importImage(uri) },
-                exportAction = { uri -> bitmap?.let { viewModel.saveBitmapToUri(bitmap, uri) } }
+                exportAction = { uri -> bitmap?.let { viewModel.saveBitmapToUri(bitmap, uri) } },
+                rotateAction = { viewModel.increaseRotation() }
             )
             // image
             val loresBitmap = viewModel.loresBitmap.collectAsState().value

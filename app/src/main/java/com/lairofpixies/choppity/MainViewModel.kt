@@ -21,6 +21,13 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
+data class ProcessParams(
+    val aspectRatio: Size,
+    val bgColor: Color,
+    val screenDimensions: Size,
+    val turns: Constants.Rotations
+)
+
 class MainViewModel(
     private val context: Context
 ) : ViewModel() {
@@ -37,14 +44,15 @@ class MainViewModel(
     private val _loresBitmap = MutableStateFlow<Bitmap?>(null)
     val loresBitmap = _loresBitmap.asStateFlow()
 
-    private val _aspectRatio = MutableStateFlow(Size(1f, 1f))
-    val aspectRatio = _aspectRatio.asStateFlow()
-
-    private val _bgColor = MutableStateFlow(Color.Black)
-    val bgColor = _bgColor.asStateFlow()
-
-    private val _screenDimensions = MutableStateFlow(Size(1920f, 1080f))
-    val screenDimensions = _screenDimensions.asStateFlow()
+    private val _processParams = MutableStateFlow(
+        ProcessParams(
+            aspectRatio = Size(1f, 1f),
+            bgColor = Color.Black,
+            screenDimensions = Size(1920f, 1080f),
+            turns = Constants.Rotations.none
+        )
+    )
+    val processParams = _processParams.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -68,25 +76,28 @@ class MainViewModel(
                     return@collect
                 }
 
-                val ratio = calculateDefaultAspectRatio(bitmap)
+                val params = ProcessParams(
+                    aspectRatio = calculateDefaultAspectRatio(bitmap),
+                    bgColor = processParams.value.bgColor,
+                    screenDimensions = processParams.value.screenDimensions,
+                    turns = Constants.Rotations.none
+                )
 
                 mutex.withLock {
+                    _processParams.emit(params)
                     _loadedBitmap.emit(bitmap)
-                    _aspectRatio.emit(ratio)
                 }
             }
         }
         viewModelScope.launch {
             combine(
                 loadedBitmap,
-                aspectRatio,
-                screenDimensions,
-                bgColor
-            ) { bitmap, ratio, dimensions, bgColor ->
+                processParams
+            ) { bitmap, params ->
                 if (bitmap == null) {
                     clearImage()
                 } else {
-                    renderImage(bitmap, ratio, dimensions, bgColor)
+                    renderImage(bitmap, params)
                 }
             }.collect {}
         }
@@ -112,19 +123,24 @@ class MainViewModel(
 
     private suspend fun renderImage(
         inputBitmap: Bitmap,
-        ratio: Size,
-        dimensions: Size,
-        color: Color
+        params: ProcessParams,
     ) {
-        val processedBitmap = if (ratio.width <= 0f || ratio.height <= 0f) {
-            // special case: skip resizing
-            inputBitmap
+        val rotatedBitmap = if (params.turns != Constants.Rotations.none) {
+            rotateBitmapQuarterTurns(inputBitmap, params.turns.quarters)
         } else {
-            val desiredDimensions = calculateDimensions(inputBitmap, ratio)
-            createResizedBitmap(inputBitmap, desiredDimensions, color)
+            inputBitmap
         }
 
-        val downsizedBitmap = downsizeBitmap(processedBitmap, dimensions)
+        val processedBitmap =
+            if (params.aspectRatio.width <= 0f || params.aspectRatio.height <= 0f) {
+                // special case: skip resizing
+                rotatedBitmap
+            } else {
+                val desiredDimensions = calculateDimensions(inputBitmap, params.aspectRatio)
+                createResizedBitmap(rotatedBitmap, desiredDimensions, params.bgColor)
+            }
+
+        val downsizedBitmap = downsizeBitmap(processedBitmap, params.screenDimensions)
 
         mutex.withLock {
             _hiresBitmap.emit(processedBitmap)
@@ -165,10 +181,27 @@ class MainViewModel(
         return Size(expandedWidth, expandedHeight)
     }
 
+    private fun rotateBitmapQuarterTurns(input: Bitmap, turns: Int): Bitmap {
+        require(turns in 0..3)
+
+        val degrees = 90 * turns
+        val matrix = Matrix().apply {
+            postRotate(degrees.toFloat())
+        }
+
+        return Bitmap.createBitmap(
+            input,
+            0, 0,
+            input.width, input.height,
+            matrix,
+            true
+        )
+    }
+
     private fun createResizedBitmap(
         originalBitmap: Bitmap,
         targetDimensions: Size,
-        backgroundColor: Color
+        backgroundColor: Color,
     ): Bitmap {
         val targetWidth = targetDimensions.width.toInt()
         val targetHeight = targetDimensions.height.toInt()
@@ -214,19 +247,26 @@ class MainViewModel(
 
     fun updateScreenSize(screenDimensionsInPx: Size) {
         viewModelScope.launch {
-            _screenDimensions.emit(screenDimensionsInPx)
+            _processParams.emit(processParams.value.copy(screenDimensions = screenDimensionsInPx))
         }
     }
 
     fun setAspectRatio(newAspectRatio: Size) {
         viewModelScope.launch {
-            _aspectRatio.emit(newAspectRatio)
+            _processParams.emit(processParams.value.copy(aspectRatio = newAspectRatio))
         }
     }
 
     fun setColor(newColor: Color) {
         viewModelScope.launch {
-            _bgColor.emit(newColor)
+            _processParams.emit(processParams.value.copy(bgColor = newColor))
+        }
+    }
+
+    fun increaseRotation() {
+        viewModelScope.launch {
+            val newTurns = processParams.value.turns.increase()
+            _processParams.emit(processParams.value.copy(turns = newTurns))
         }
     }
 
