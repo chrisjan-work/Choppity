@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lairofpixies.choppity.Constants
@@ -33,6 +32,9 @@ class MainViewModel(
 
     private val _loresBitmap = MutableStateFlow<Bitmap?>(null)
     val loresBitmap = _loresBitmap.asStateFlow()
+
+    private val _busyIndicator = MutableStateFlow(false)
+    val busyIndicator = _busyIndicator.asStateFlow()
 
     private val _processParams = MutableStateFlow(
         ProcessParams(
@@ -172,12 +174,14 @@ class MainViewModel(
 //        }
 //    }
 
-    private val exportQueue = mutableListOf<()->Unit>()
+    private val exportQueue = mutableListOf<() -> Unit>()
 
     private fun consumeNextExport() {
         if (exportQueue.isNotEmpty()) {
             val nextCallback = exportQueue.removeAt(0)
             nextCallback.invoke()
+        } else {
+            toggleBusy(false)
         }
     }
 
@@ -187,6 +191,7 @@ class MainViewModel(
     }
 
     fun launchExports(hiresBitmap: Bitmap, callback: (Bitmap, String) -> Unit) {
+        toggleBusy(true)
         val shouldStartQueue = exportQueue.isEmpty()
         val originalUri = inputUri.value ?: return
         val originalFilename = diskLogic.getFileNameFromUri(originalUri) ?: "image.JPG"
@@ -208,6 +213,12 @@ class MainViewModel(
 
         if (shouldStartQueue) {
             consumeNextExport()
+        }
+    }
+
+    fun toggleBusy(busy: Boolean) {
+        viewModelScope.launch {
+            _busyIndicator.emit(busy)
         }
     }
 }

@@ -28,6 +28,7 @@ import com.lairofpixies.choppity.logic.MainViewModel
 import com.lairofpixies.choppity.ui.ActionRow
 import com.lairofpixies.choppity.ui.OptionsRow
 import com.lairofpixies.choppity.ui.ProcessedImageDisplay
+import com.lairofpixies.choppity.ui.ProgressDialog
 import com.lairofpixies.choppity.ui.ScreenDimensionsUpdater
 import com.lairofpixies.choppity.ui.theme.ChoppityTheme
 
@@ -135,6 +136,13 @@ class MainActivity : ComponentActivity() {
                 setColor = { color -> viewModel.setColor(color) },
                 setSections = { separators -> viewModel.setSections(separators) }
             )
+        }
+
+        val showBusy = viewModel.busyIndicator.collectAsState().value
+        if (showBusy) {
+            ProgressDialog(modifier = modifier) {
+                viewModel.toggleBusy(false)
+            }
         }
     }
 
