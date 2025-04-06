@@ -20,19 +20,6 @@ import com.lairofpixies.choppity.Constants
 
 enum class OptionCategories{ ASPECT_RATIO, FILL_COLOR, SECTION_COUNT }
 
-@Composable
-fun OptionsRow(
-    setAspectRatio: (Size) -> Unit,
-    setColor: (Color) -> Unit,
-    setSections: (Int) -> Unit,
-) {
-    Column {
-        AspectRatioRow(setAspectRatio)
-        ColorRow(setColor)
-        SectionRow(setSections)
-    }
-}
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AspectRatioRow(

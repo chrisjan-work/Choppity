@@ -1,4 +1,4 @@
-package com.lairofpixies.choppity
+package com.lairofpixies.choppity.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,7 +22,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ChopTopBar(
+fun TopBarContent(
     modifier: Modifier = Modifier,
     outputAvailable: Boolean,
     importAction: () -> Unit,
