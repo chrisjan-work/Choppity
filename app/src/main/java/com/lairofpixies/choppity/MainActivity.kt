@@ -13,7 +13,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
@@ -24,7 +23,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -41,33 +39,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import coil.request.SuccessResult
 import com.lairofpixies.choppity.ui.theme.ChoppityTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlin.math.floor
-import kotlin.math.max
 
 
 class MainActivity : ComponentActivity() {
@@ -122,6 +109,7 @@ class MainActivity : ComponentActivity() {
     fun ActionRow(viewModel: MainViewModel) {
         Row {
             LoadButton(viewModel)
+            ExportButton(viewModel)
         }
     }
 
@@ -176,26 +164,27 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun DisplayPickedImage(imageUri: Uri?) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            if (imageUri != null) {
-                ZoomableImage(imageUri = imageUri)
-            } else {
-                // Optionally display a placeholder or message when no image is selected
-                // Example:
-                // Text("No image selected", style = MaterialTheme.typography.bodyLarge)
-            }
-        }
-    }
+//    @Composable
+//    fun DisplayPickedImage(imageUri: Uri?) {
+//        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//            if (imageUri != null) {
+//                ZoomableImage(imageUri = imageUri)
+//            } else {
+//                // Optionally display a placeholder or message when no image is selected
+//                // Example:
+//                // Text("No image selected", style = MaterialTheme.typography.bodyLarge)
+//            }
+//        }
+//    }
 
     @Composable
-    fun ImageExportScreen(imageUri: Uri?) {
+    fun ExportButton(viewModel: MainViewModel) {
         val context = LocalContext.current
 
         var originalFileName by remember { mutableStateOf<String?>(null) }
         var suggestedOutputUri by remember { mutableStateOf<Uri?>(null) }
-        var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+        val imageUri = viewModel.inputUri.collectAsState().value
 
         // Extract filename from Uri on composition if imageUri changes
         LaunchedEffect(imageUri) {
@@ -208,29 +197,26 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        val imageBitmap = viewModel.hiresBitmap.collectAsState().value
 
+        if (imageUri != null && imageBitmap != null) {
         val exportImageLauncher =
             rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(MIMETYPE_IMAGE)) { outputUri: Uri? ->
                 // TODO: handle cancellations/missing images
-                val bimap = imageBitmap ?: return@rememberLauncherForActivityResult
+                val bimap = imageBitmap
                 val uri = outputUri ?: return@rememberLauncherForActivityResult
-                saveBitmapToUri(context, bitmap = bimap, uri = uri)
+                viewModel.saveBitmapToUri(bitmap = bimap, uri = uri)
             }
 
-        Column {
-            if (imageUri != null) {
-                Button(onClick = {
-                    // Launch the file picker with a suggested filename and location
-                    suggestedOutputUri?.let {
-                        val suggestedFilename =
-                            originalFileName?.replaceAfterLast('.', "JPG")?.replace(".", "_ed.")
-                        exportImageLauncher.launch(suggestedFilename)
-                    }
-                }) {
-                    Text("Export")
+            Button(onClick = {
+                // Launch the file picker with a suggested filename and location
+                suggestedOutputUri?.let {
+                    val suggestedFilename =
+                        originalFileName?.replaceAfterLast('.', "JPG")?.replace(".", "_ed.")
+                    exportImageLauncher.launch(suggestedFilename)
                 }
-            } else {
-                Text("No image selected to export.")
+            }) {
+                Text("Export")
             }
         }
     }
@@ -591,16 +577,6 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    fun saveBitmapToUri(context: Context, bitmap: Bitmap, uri: Uri) {
-        try {
-            // TODO: display error
-            val outputStream = context.contentResolver.openOutputStream(uri) ?: return
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-            outputStream.close()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
 
     fun processAndDisplayImage(
         context: Context,
@@ -616,7 +592,7 @@ class MainActivity : ComponentActivity() {
         val resizedBitmap = createResizedBitmap(originalBitmap, targetWidth, targetHeight)
 
         // Step 3: Save resized image to file
-        saveBitmapToUri(context, resizedBitmap, outputUri)
+//        saveBitmapToUri(context, resizedBitmap, outputUri)
 
         return resizedBitmap // Return for UI display or further processing
     }

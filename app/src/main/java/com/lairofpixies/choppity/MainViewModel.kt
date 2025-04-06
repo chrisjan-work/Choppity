@@ -31,8 +31,8 @@ class MainViewModel(
     private val _loadedBitmap = MutableStateFlow<Bitmap?>(null)
     val loadedBitmap = _loadedBitmap.asStateFlow()
 
-    private val _outputBitmap = MutableStateFlow<Bitmap?>(null)
-    val outputBitmap = _outputBitmap.asStateFlow()
+    private val _hiresBitmap = MutableStateFlow<Bitmap?>(null)
+    val hiresBitmap = _hiresBitmap.asStateFlow()
 
     private val _loresBitmap = MutableStateFlow<Bitmap?>(null)
     val loresBitmap = _loresBitmap.asStateFlow()
@@ -96,14 +96,14 @@ class MainViewModel(
     }
 
     private suspend fun clearImage() {
-        _outputBitmap.emit(null)
+        _hiresBitmap.emit(null)
         _loresBitmap.emit(null)
     }
 
     private suspend fun renderImage(inputBitmap: Bitmap, ratio: Size, dimensions: Size) {
         val desiredDimensions = calculateDimensions(inputBitmap, ratio)
         val processedBitmap = createResizedBitmap(inputBitmap, desiredDimensions, Color.Black)
-        _outputBitmap.emit(processedBitmap)
+        _hiresBitmap.emit(processedBitmap)
 
         val downsizedBitmap = downsizeBitmap(processedBitmap, dimensions)
         _loresBitmap.emit(downsizedBitmap)
@@ -199,6 +199,17 @@ class MainViewModel(
     fun setAspectRatio(newAspectRatio: Size) {
         viewModelScope.launch {
             _aspectRatio.emit(newAspectRatio)
+        }
+    }
+
+    fun saveBitmapToUri(bitmap: Bitmap, uri: Uri) {
+        try {
+            // TODO: display error
+            val outputStream = context.contentResolver.openOutputStream(uri) ?: return
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            outputStream.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
