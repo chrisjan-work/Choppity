@@ -49,7 +49,10 @@ class MainActivity : ComponentActivity() {
             val loresBitmap = viewModel.loresBitmap.collectAsState().value
             ProcessedImageDisplay(loresBitmap, modifier = Modifier.weight(1f))
             // aspect ratio
-            OptionsRow { aspectRatio -> viewModel.setAspectRatio(aspectRatio) }
+            OptionsRow(
+                setAspectRatio = { aspectRatio -> viewModel.setAspectRatio(aspectRatio) },
+                setColor = { color -> viewModel.setColor(color) }
+            )
         }
     }
 

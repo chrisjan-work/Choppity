@@ -1,25 +1,34 @@
 package com.lairofpixies.choppity.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.lairofpixies.choppity.Constants
 
 
 @Composable
-fun OptionsRow(setAspectRatio: (Size) -> Unit) {
+fun OptionsRow(
+    setAspectRatio: (Size) -> Unit,
+    setColor: (Color) -> Unit,
+) {
     Column {
         AspectRatioRow(setAspectRatio)
+        ColorRow(setColor)
     }
 }
-
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -32,12 +41,39 @@ fun AspectRatioRow(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         Constants.ASPECT_RATIOS.forEach { ar ->
-            Button(onClick = {
-                setAspectRatio(Size(ar.first.toFloat(), ar.second.toFloat()))
-            }) {
+            Button(
+                onClick = {
+                    setAspectRatio(Size(ar.first.toFloat(), ar.second.toFloat()))
+                },
+                modifier = Modifier.widthIn(120.dp)
+            ) {
                 Text("${ar.first}:${ar.second}")
             }
         }
+    }
+}
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ColorRow(
+    setColor: (Color) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Constants.COLORS.forEach { color ->
+            Button(
+                onClick = {
+                    setColor(color)
+                },
+//                modifier = Modifier.widthIn(120.dp)
+            ) {
+                Box(Modifier
+                    .size(52.dp, 32.dp)
+                    .background(color))
+            }
+        }
     }
 }

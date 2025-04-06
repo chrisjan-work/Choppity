@@ -1,5 +1,7 @@
 package com.lairofpixies.choppity
 
+import androidx.compose.ui.graphics.Color
+
 object Constants {
     // Zoom controls
     const val RESET_ZOOM_ON_DOUBLETAP = true
@@ -21,5 +23,16 @@ object Constants {
         3 to 2,
         16 to 9,
         20 to 9,
+    )
+    // Colors
+    val COLORS = listOf(
+        Color(0xFF000000), // Black
+        Color(0xFF0D0D0D),// 5%
+        Color(0xFF1A1A1A),// 10%
+        Color(0xFF333333),// 20%
+        Color(0xFF4D4D4D),// 30%
+        Color(0xFF808080),// 50%
+        Color(0xFFCCCCCC),// 80%
+        Color(0xFFFFFFFF), // White
     )
 }

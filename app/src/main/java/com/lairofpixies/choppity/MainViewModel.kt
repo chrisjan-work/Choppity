@@ -40,7 +40,9 @@ class MainViewModel(
     private val _aspectRatio = MutableStateFlow(Size(1f, 1f))
     val aspectRatio = _aspectRatio.asStateFlow()
 
-    // TODO: update based on actual values
+    private val _bgColor = MutableStateFlow(Color.Black)
+    val bgColor = _bgColor.asStateFlow()
+
     private val _screenDimensions = MutableStateFlow(Size(1920f, 1080f))
     val screenDimensions = _screenDimensions.asStateFlow()
 
@@ -74,11 +76,16 @@ class MainViewModel(
             }
         }
         viewModelScope.launch {
-            combine(loadedBitmap, aspectRatio, screenDimensions) { bitmap, ratio, dimensions ->
+            combine(
+                loadedBitmap,
+                aspectRatio,
+                screenDimensions,
+                bgColor
+            ) { bitmap, ratio, dimensions, bgColor ->
                 if (bitmap == null) {
                     clearImage()
                 } else {
-                    renderImage(bitmap, ratio, dimensions)
+                    renderImage(bitmap, ratio, dimensions, bgColor)
                 }
             }.collect {}
         }
@@ -100,9 +107,14 @@ class MainViewModel(
         _loresBitmap.emit(null)
     }
 
-    private suspend fun renderImage(inputBitmap: Bitmap, ratio: Size, dimensions: Size) {
+    private suspend fun renderImage(
+        inputBitmap: Bitmap,
+        ratio: Size,
+        dimensions: Size,
+        color: Color
+    ) {
         val desiredDimensions = calculateDimensions(inputBitmap, ratio)
-        val processedBitmap = createResizedBitmap(inputBitmap, desiredDimensions, Color.Black)
+        val processedBitmap = createResizedBitmap(inputBitmap, desiredDimensions, color)
         _hiresBitmap.emit(processedBitmap)
 
         val downsizedBitmap = downsizeBitmap(processedBitmap, dimensions)
@@ -198,6 +210,12 @@ class MainViewModel(
     fun setAspectRatio(newAspectRatio: Size) {
         viewModelScope.launch {
             _aspectRatio.emit(newAspectRatio)
+        }
+    }
+
+    fun setColor(newColor: Color) {
+        viewModelScope.launch {
+            _bgColor.emit(newColor)
         }
     }
 
