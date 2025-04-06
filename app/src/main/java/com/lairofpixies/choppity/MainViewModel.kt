@@ -152,7 +152,6 @@ class MainViewModel(
         require(targetWidth > 0 && targetHeight > 0)
 
         val resizedBitmap = createBitmap(targetWidth, targetHeight)
-//        val resizedBitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(resizedBitmap)
 
         // Calculate offsets to center the original image
