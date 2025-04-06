@@ -3,6 +3,7 @@ package com.lairofpixies.choppity.logic
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -142,4 +143,27 @@ internal fun downsizeBitmap(hiresBitmap: Bitmap, params: ProcessParams): Bitmap 
     }
 
     return resizedBitmap
+}
+
+internal fun choppify(hiresBitmap: Bitmap, sectionCount: Int): List<Bitmap> {
+    val side = floor(hiresBitmap.width.toFloat() / sectionCount).toInt()
+    val margin = hiresBitmap.width - sectionCount * side
+    val marginStart = margin / 2
+    val marginEnd = margin - marginStart
+
+    val sectionList = mutableListOf<Bitmap>()
+    for (i in 0 until sectionCount) {
+        val sectionBitmap = createBitmap(side, hiresBitmap.height)
+        val canvas = android.graphics.Canvas(sectionBitmap)
+        val x = marginStart + i * side
+        canvas.drawBitmap(
+            hiresBitmap,
+            Rect(x, 0, x + side, hiresBitmap.height),
+            Rect(0, 0, side, hiresBitmap.height),
+            null
+        )
+        sectionList.add(sectionBitmap)
+    }
+
+    return sectionList
 }

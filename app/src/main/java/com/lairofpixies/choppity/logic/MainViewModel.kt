@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lairofpixies.choppity.Constants
@@ -152,6 +153,23 @@ class MainViewModel(
     }
 
     fun export(bitmap: Bitmap, uri: Uri) {
-        saveBitmapToUri(context, bitmap, uri)
+        if (processParams.value.sectionCount <= 1) {
+            saveBitmapToUri(context, bitmap, uri)
+        } else {
+            TODO("doesn't quite work yet. The chopping part works, but writing files is not so easy")
+            // chop in parts, save the parts
+            viewModelScope.launch {
+                val sections =
+                    choppify(bitmap, processParams.value.sectionCount)
+                val originalFilename = getFileNameFromUri(context, uri)
+                for (section in sections.withIndex()) {
+                    val sectionUri =
+                        uri.toString()?.insertBeforeExtension("_${section.index}")?.toUri()
+                    sectionUri?.let {
+                        saveBitmapToUri(context, section.value, sectionUri)
+                    }
+                }
+            }
+        }
     }
 }
