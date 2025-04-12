@@ -1,7 +1,21 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+}
+
+val secretsProperties = Properties()
+val secretsPropertiesFile = rootProject.file("secrets.properties")
+if (secretsPropertiesFile.exists()) {
+    secretsProperties.load(FileInputStream(secretsPropertiesFile))
+} else {
+    val secretsDefaultPropertiesFile = rootProject.file("secrets.default.properties")
+    if (secretsDefaultPropertiesFile.exists()) {
+        secretsProperties.load(FileInputStream(secretsDefaultPropertiesFile))
+    }
 }
 
 android {
@@ -18,13 +32,25 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            if (!(secretsProperties["keystore.file"] as? String?).isNullOrBlank()) {
+                keyAlias = secretsProperties["key.alias"] as String
+                keyPassword = secretsProperties["key.password"] as String
+                storeFile = file(secretsProperties["keystore.file"] as String)
+                storePassword = secretsProperties["keystore.password"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
