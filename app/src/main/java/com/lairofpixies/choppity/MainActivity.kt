@@ -31,17 +31,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun parseIntent(newIntent: Intent?) {
-        if (newIntent?.action in setOf(Intent.ACTION_SEND, Intent.ACTION_EDIT)) {
+    private fun parseIntent(newIntent: Intent) {
+        if (newIntent.action in setOf(Intent.ACTION_SEND, Intent.ACTION_EDIT)) {
             val importedUri =
-                newIntent?.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java) ?: return
+                newIntent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java) ?: return
             viewModel.importImage(importedUri)
         }
     }
 
-    override fun onNewIntent(newIntent: Intent?) {
-        super.onNewIntent(newIntent)
-        parseIntent(newIntent)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        parseIntent(intent)
     }
 }
 
