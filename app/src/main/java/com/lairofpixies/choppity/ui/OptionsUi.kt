@@ -3,7 +3,6 @@ package com.lairofpixies.choppity.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.lairofpixies.choppity.Constants
 
-enum class OptionCategories{ ASPECT_RATIO, FILL_COLOR, SECTION_COUNT }
+enum class OptionCategories { ASPECT_RATIO, FILL_COLOR, SECTION_COUNT }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -83,7 +82,7 @@ fun SectionRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        (1 .. 10).forEach { count ->
+        (1..10).forEach { count ->
             Button(
                 onClick = {
                     setSections(count)
