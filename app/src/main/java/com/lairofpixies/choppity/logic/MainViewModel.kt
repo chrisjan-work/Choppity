@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- package com.lairofpixies.choppity.logic
+package com.lairofpixies.choppity.logic
 
 import android.graphics.Bitmap
 import android.net.Uri
@@ -24,7 +24,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lairofpixies.choppity.Constants
+import com.lairofpixies.choppity.data.AspectRatio
+import com.lairofpixies.choppity.data.Constants
+import com.lairofpixies.choppity.data.ProcessParams
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -54,21 +56,12 @@ class MainViewModel(
     private val _busyIndicator = MutableStateFlow(false)
     val busyIndicator = _busyIndicator.asStateFlow()
 
-    private val _processParams = MutableStateFlow(
-        ProcessParams(
-            aspectRatio = Size(1f, 1f),
-            bgColor = Color.Black,
-            screenDimensions = Size(1920f, 1080f),
-            turns = Constants.Rotations.none,
-            sectionCount = 1
-        )
-    )
+    private val _processParams = MutableStateFlow(ProcessParams.Default)
+
     val processParams = _processParams.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            listenToParameterChanges()
-        }
+        listenToParameterChanges()
     }
 
     fun importImage(uri: Uri?) {
@@ -87,11 +80,9 @@ class MainViewModel(
                     return@collect
                 }
 
-                val params = ProcessParams(
-                    aspectRatio = calculateDefaultAspectRatio(bitmap),
-                    bgColor = processParams.value.bgColor,
-                    screenDimensions = processParams.value.screenDimensions,
-                    turns = Constants.Rotations.none,
+                val params = processParams.value.copy(
+                    aspectRatio = AspectRatio.Original,
+                    turns = Constants.Rotations.None,
                     sectionCount = 1
                 )
 
@@ -142,9 +133,16 @@ class MainViewModel(
         }
     }
 
-    fun setAspectRatio(newAspectRatio: Size) {
+    fun setAspectRatio(newAspectRatio: AspectRatio) {
         viewModelScope.launch {
-            _processParams.emit(processParams.value.copy(aspectRatio = newAspectRatio))
+            val adjustedAspectRatio = if (newAspectRatio != AspectRatio.Auto) {
+                newAspectRatio
+            } else {
+                loadedBitmap.value?.let { bitmap ->
+                    calculateAutoAspectRatio(bitmap)
+                } ?: AspectRatio.Original
+            }
+            _processParams.emit(processParams.value.copy(aspectRatio = adjustedAspectRatio))
         }
     }
 
@@ -172,27 +170,6 @@ class MainViewModel(
             _processParams.emit(processParams.value.copy(sectionCount = sectionCount))
         }
     }
-
-//    fun _export(bitmap: Bitmap, uri: Uri) {
-//        if (processParams.value.sectionCount <= 1) {
-//            diskLogic.saveBitmapToUri(bitmap, uri)
-//        } else {
-//            TODO("doesn't quite work yet. The chopping part works, but writing files is not so easy")
-//            // chop in parts, save the parts
-//            viewModelScope.launch {
-//                val sections =
-//                    choppify(bitmap, processParams.value.sectionCount)
-//                val originalFilename = diskLogic.getFileNameFromUri(uri)
-//                for (section in sections.withIndex()) {
-//                    val sectionUri =
-//                        uri.toString()?.insertBeforeExtension("_${section.index}")?.toUri()
-//                    sectionUri?.let {
-//                        diskLogic.saveBitmapToUri(section.value, sectionUri)
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     private val exportQueue = mutableListOf<() -> Unit>()
 

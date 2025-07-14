@@ -16,16 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- package com.lairofpixies.choppity.logic
+ package com.lairofpixies.choppity.data
 
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import com.lairofpixies.choppity.Constants
 
 data class ProcessParams(
-    val aspectRatio: Size,
+    val aspectRatio: AspectRatio,
     val bgColor: Color,
     val screenDimensions: Size,
     val turns: Constants.Rotations,
     val sectionCount: Int
-)
+) {
+    companion object {
+        val Default = ProcessParams(
+            aspectRatio = AspectRatio.Original,
+            bgColor = Color.Black,
+            screenDimensions = Size(1920f, 1080f),
+            turns = Constants.Rotations.None,
+            sectionCount = 1
+        )
+    }
+}

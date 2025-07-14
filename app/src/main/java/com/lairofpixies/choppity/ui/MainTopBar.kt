@@ -30,7 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.lairofpixies.choppity.Constants
+import com.lairofpixies.choppity.data.Constants
 import com.lairofpixies.choppity.logic.MainViewModel
 
 @Composable
@@ -39,7 +39,7 @@ fun MainTopBar(viewModel: MainViewModel) {
     val callForOutput = exportCallbackFactory(viewModel)
     val hiresBitmap = viewModel.hiresBitmap.collectAsState()
 
-    // for flipaction
+    // for flip action
     val normalColor = MaterialTheme.colorScheme.background
     val flippedColor = MaterialTheme.colorScheme.onBackground
     val currentColor = viewModel.appBackground.collectAsState()

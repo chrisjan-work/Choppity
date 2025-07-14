@@ -16,59 +16,86 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- package com.lairofpixies.choppity.ui
+package com.lairofpixies.choppity.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.lairofpixies.choppity.Constants
+import com.lairofpixies.choppity.data.AspectRatio
+import com.lairofpixies.choppity.data.Constants
+
 
 enum class OptionCategories { ASPECT_RATIO, FILL_COLOR, SECTION_COUNT }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AspectRatioRow(
-    setAspectRatio: (Size) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    setAspectRatio: (AspectRatio) -> Unit,
 ) {
-    FlowRow(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(4),
+        contentPadding = PaddingValues(2.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = modifier.fillMaxWidth()
     ) {
-        Constants.ASPECT_RATIOS.forEach { ar ->
-            Button(
-                onClick = {
-                    setAspectRatio(Size(ar.first.toFloat(), ar.second.toFloat()))
-                },
-                modifier = Modifier.widthIn(60.dp)
-            ) {
-                if (ar.first > 0 && ar.second > 0) {
-                    Text("${ar.first}:${ar.second}")
-                } else {
-                    Text("Orig")
-                }
-            }
+        items(AspectRatio.All) { item ->
+            AspectRatioCell(item, onClick = { setAspectRatio(item) })
         }
     }
+}
+
+@Composable
+fun AspectRatioCell(item: AspectRatio, onClick: () -> Unit) {
+    val bgColor = MaterialTheme.colorScheme.surfaceDim
+    Box(
+        modifier = Modifier
+            .aspectRatio(1.5f)
+            .background(bgColor, shape = RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = item.label, style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+@Preview
+@Composable
+fun AspectRatioRowPreview() {
+    AspectRatioRow {}
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ColorRow(
+    modifier: Modifier = Modifier,
     setColor: (Color) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     FlowRow(
         modifier = modifier.fillMaxWidth(),
@@ -90,11 +117,17 @@ fun ColorRow(
     }
 }
 
+@Preview
+@Composable
+fun ColorRowPreview() {
+    ColorRow {}
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SectionRow(
+    modifier: Modifier = Modifier,
     setSections: (Int) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     FlowRow(
         modifier = modifier.fillMaxWidth(),
@@ -111,4 +144,11 @@ fun SectionRow(
             }
         }
     }
+}
+
+
+@Preview
+@Composable
+fun SectionRowPreview() {
+    SectionRow {}
 }

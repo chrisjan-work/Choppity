@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- package com.lairofpixies.choppity.ui
+package com.lairofpixies.choppity.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,11 +49,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.lairofpixies.choppity.data.AspectRatio
 import com.lairofpixies.choppity.logic.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -155,20 +155,13 @@ fun BottomSheet(
 
 @Composable
 fun AspectRatioCategoryButton(
-    aspectRatio: Size,
+    aspectRatio: AspectRatio,
     selectCategory: (OptionCategories) -> Unit,
 ) {
     Button(onClick = {
         selectCategory(OptionCategories.ASPECT_RATIO)
     }) {
-        aspectRatio.let {
-            val text = if (it.width <= 0f || it.height <= 0f) {
-                "Orig"
-            } else {
-                "${it.width.toInt()}:${it.height.toInt()}"
-            }
-            Text(text)
-        }
+        Text(aspectRatio.label)
     }
 }
 

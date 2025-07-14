@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- package com.lairofpixies.choppity.logic
+package com.lairofpixies.choppity.logic
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -26,25 +26,25 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
-import com.lairofpixies.choppity.Constants
+import com.lairofpixies.choppity.data.Constants
+import com.lairofpixies.choppity.data.AspectRatio
+import com.lairofpixies.choppity.data.ProcessParams
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
-internal fun calculateDefaultAspectRatio(bitmap: Bitmap): Size {
-    return Constants.ASPECT_RATIOS.filter {
-        it.first > 0 && it.second > 0
-    }.map {
-        Size(it.first.toFloat(), it.second.toFloat())
-    }.minByOrNull {
-        val newDimensions = calculateDimensions(bitmap, it)
-        val dx = bitmap.width - newDimensions.width
-        val dy = bitmap.height - newDimensions.height
-        (dx * dx) + (dy * dy) // quadratic error
-    } ?: Size(1f, 1f)
+internal fun calculateAutoAspectRatio(bitmap: Bitmap): AspectRatio {
+    return AspectRatio.All
+        .filterIsInstance<AspectRatio.Value>()
+        .minByOrNull {
+            val newDimensions = calculateDimensions(bitmap, it)
+            val dx = bitmap.width - newDimensions.width
+            val dy = bitmap.height - newDimensions.height
+            (dx * dx) + (dy * dy) // quadratic error
+        } ?: AspectRatio.Square
 }
 
-internal fun calculateDimensions(bitmap: Bitmap, desiredAspectRatio: Size): Size {
+internal fun calculateDimensions(bitmap: Bitmap, desiredAspectRatio: AspectRatio.Value): Size {
     val originalWidth = bitmap.width.toFloat()
     val originalHeight = bitmap.height.toFloat()
     require(originalWidth > 0 && originalHeight > 0)
@@ -108,14 +108,14 @@ internal fun createResizedBitmap(
 }
 
 internal fun renderHires(inputBitmap: Bitmap, params: ProcessParams): Bitmap {
-    val rotatedBitmap = if (params.turns != Constants.Rotations.none) {
+    val rotatedBitmap = if (params.turns != Constants.Rotations.None) {
         rotateBitmapQuarterTurns(inputBitmap, params.turns.quarters)
     } else {
         inputBitmap
     }
 
     val processedBitmap =
-        if (params.aspectRatio.width <= 0f || params.aspectRatio.height <= 0f) {
+        if (params.aspectRatio !is AspectRatio.Value) {
             // special case: skip resizing
             rotatedBitmap
         } else {

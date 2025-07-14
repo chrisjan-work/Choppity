@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- package com.lairofpixies.choppity
+package com.lairofpixies.choppity.data
 
 import androidx.compose.ui.graphics.Color
 
@@ -29,20 +29,6 @@ object Constants {
 
     // Mimetype
     const val MIMETYPE_IMAGE = "image/*"
-
-    // Known aspect ratios
-    val ASPECT_RATIOS = listOf(
-        0 to 0,
-        3 to 4,
-        5 to 6,
-        1 to 1,
-        6 to 5,
-        4 to 3,
-        7 to 5,
-        3 to 2,
-        16 to 9,
-        20 to 9,
-    )
 
     // Colors
     val COLORS = listOf(
@@ -57,10 +43,10 @@ object Constants {
     )
 
     enum class Rotations(val quarters: Int) {
-        none(0),
-        quarter(1),
-        half(2),
-        threequts(3);
+        None(0),
+        Quarter(1),
+        Half(2),
+        Threequts(3);
 
         fun increase(): Rotations = entries[(ordinal + 1) % entries.size]
     }

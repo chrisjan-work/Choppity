@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.lairofpixies.choppity.Constants
+import com.lairofpixies.choppity.data.Constants
 
 
 @Composable
