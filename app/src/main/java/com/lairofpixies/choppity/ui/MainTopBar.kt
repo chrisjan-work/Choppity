@@ -18,8 +18,10 @@
  */
  package com.lairofpixies.choppity.ui
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import com.lairofpixies.choppity.data.Constants
 import com.lairofpixies.choppity.logic.MainViewModel
 
@@ -46,6 +49,7 @@ fun MainTopBar(viewModel: MainViewModel) {
     LaunchedEffect(Unit) {
         viewModel.updateAppBackgroundColor(normalColor)
     }
+    val activity = LocalActivity.current
 
     TopBarContent(
         outputAvailable = hiresBitmap.value != null,
@@ -64,6 +68,9 @@ fun MainTopBar(viewModel: MainViewModel) {
                     normalColor
                 }
             )
+        },
+        exitAction = {
+            activity?.finish()
         }
     )
 }

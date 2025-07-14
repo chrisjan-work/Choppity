@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
@@ -46,7 +47,8 @@ fun TopBarContent(
     importAction: () -> Unit,
     exportAction: () -> Unit,
     rotateAction: () -> Unit,
-    flipAction: () -> Unit
+    flipAction: () -> Unit,
+    exitAction: () -> Unit
 ) {
     Box(
         modifier =
@@ -67,6 +69,7 @@ fun TopBarContent(
 
                 ImportIcon(importAction)
                 ExportIcon(outputAvailable, exportAction)
+                ExitIcon(exitAction)
             }
         }
     )
@@ -104,6 +107,19 @@ fun ExportIcon(
         Icons.Default.Done,
         contentDescription = "Export",
         modifier = exportModifier,
+        tint = MaterialTheme.colorScheme.onBackground,
+    )
+}
+
+@Composable
+fun ExitIcon(exitAction: () -> Unit) {
+    Icon(
+        Icons.Default.Clear,
+        contentDescription = "Exit",
+        modifier =
+            Modifier
+                .padding(8.dp)
+                .clickable { exitAction() },
         tint = MaterialTheme.colorScheme.onBackground,
     )
 }
