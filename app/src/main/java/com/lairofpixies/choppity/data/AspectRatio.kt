@@ -18,8 +18,8 @@ sealed class AspectRatio(val label: String) {
                 Value(7, 5),
                 Value(3, 2),
                 Value(16, 9),
-                Value(20, 9),
-                Value(24, 9),
+//                Value(20, 9),
+//                Value(24, 9),
             )
         }
 

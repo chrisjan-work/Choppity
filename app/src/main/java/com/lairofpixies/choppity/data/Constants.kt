@@ -33,12 +33,14 @@ object Constants {
     // Colors
     val COLORS = listOf(
         Color(0xFF000000), // Black
+        Color(0xFF0D0D0D), // 05%
         Color(0xFF1A1A1A), // 10%
         Color(0xFF333333), // 20%
         Color(0xFF4D4D4D), // 30%
         Color(0xFF808080), // 50%
-        Color(0xA6A6A6A6), // 65%
-        Color(0xFFD9D9D9), // 85%
+        Color(0xFFB3B3B3), // 70%
+        Color(0xFFCCCCCC), // 80%
+        Color(0xFFE6E6E6), // 90%
         Color(0xFFFFFFFF), // White
     )
 

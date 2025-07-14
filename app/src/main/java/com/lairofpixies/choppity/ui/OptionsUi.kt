@@ -56,7 +56,7 @@ fun AspectRatioRow(
     setAspectRatio: (AspectRatio) -> Unit,
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Fixed(4),
+        columns = GridCells.Fixed(5),
         contentPadding = PaddingValues(2.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -91,28 +91,39 @@ fun AspectRatioRowPreview() {
     AspectRatioRow {}
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ColorRow(
     modifier: Modifier = Modifier,
     setColor: (Color) -> Unit,
 ) {
-    FlowRow(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(5),
+        contentPadding = PaddingValues(2.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = modifier.fillMaxWidth()
     ) {
-        Constants.COLORS.forEach { color ->
-            Button(
-                onClick = {
-                    setColor(color)
-                }
-            ) {
-                Box(
-                    Modifier
-                        .size(36.dp, 24.dp)
-                        .background(color)
-                )
-            }
+        items(Constants.COLORS) { color ->
+            ColorButton(color, onClick = { setColor(color) })
+        }
+    }
+}
+
+@Composable
+fun ColorButton(barColor: Color, onClick: () -> Unit) {
+    val bgColor = MaterialTheme.colorScheme.surfaceVariant
+    Box(
+        modifier = Modifier
+            .aspectRatio(1.5f)
+            .background(bgColor, shape = RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier
+                .size(36.dp, 24.dp)
+                .background(barColor))
         }
     }
 }
