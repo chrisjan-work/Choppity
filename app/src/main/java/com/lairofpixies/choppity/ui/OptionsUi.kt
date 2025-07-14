@@ -63,14 +63,14 @@ fun AspectRatioRow(
         modifier = modifier.fillMaxWidth()
     ) {
         items(AspectRatio.All) { item ->
-            AspectRatioCell(item, onClick = { setAspectRatio(item) })
+            AspectRatioButton(item, onClick = { setAspectRatio(item) })
         }
     }
 }
 
 @Composable
-fun AspectRatioCell(item: AspectRatio, onClick: () -> Unit) {
-    val bgColor = MaterialTheme.colorScheme.surfaceDim
+fun AspectRatioButton(item: AspectRatio, onClick: () -> Unit) {
+    val bgColor = MaterialTheme.colorScheme.surfaceVariant
     Box(
         modifier = Modifier
             .aspectRatio(1.5f)
@@ -123,25 +123,37 @@ fun ColorRowPreview() {
     ColorRow {}
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SectionRow(
     modifier: Modifier = Modifier,
     setSections: (Int) -> Unit,
 ) {
-    FlowRow(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(5),
+        contentPadding = PaddingValues(2.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = modifier.fillMaxWidth()
     ) {
-        (1..10).forEach { count ->
-            Button(
-                onClick = {
-                    setSections(count)
-                },
-                modifier = Modifier.widthIn(72.dp)
-            ) {
-                Text(text = count.toString())
-            }
+        items((1..10).toList()) { sectionCount ->
+            SectionButton(sectionCount, onClick = { setSections(sectionCount) })
+        }
+    }
+}
+
+@Composable
+fun SectionButton(sectionCount: Int, onClick: () -> Unit) {
+    val bgColor = MaterialTheme.colorScheme.surfaceVariant
+    Box(
+        modifier = Modifier
+            .aspectRatio(1.5f)
+            .background(bgColor, shape = RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = sectionCount.toString(), style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
