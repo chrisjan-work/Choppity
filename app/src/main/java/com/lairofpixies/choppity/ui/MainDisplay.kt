@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- package com.lairofpixies.choppity.ui
+package com.lairofpixies.choppity.ui
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -42,10 +42,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.lairofpixies.choppity.R
 import com.lairofpixies.choppity.data.Constants
 
 
@@ -73,7 +75,7 @@ fun ProcessedImageDisplay(loresBitmap: Bitmap?, modifier: Modifier = Modifier) {
         if (loresBitmap != null) {
             ZoomableBitmap(loresBitmap)
         } else {
-            Text(text = "No image loaded")
+            Text(text = stringResource(R.string.no_image_loaded))
         }
     }
 }

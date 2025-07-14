@@ -19,27 +19,19 @@
 package com.lairofpixies.choppity.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,6 +41,15 @@ import com.lairofpixies.choppity.data.Constants
 
 
 enum class OptionCategories { ASPECT_RATIO, FILL_COLOR, SECTION_COUNT }
+
+@Composable
+fun OptionButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    content: @Composable BoxScope.() -> Unit
+) {
+    BaseButton(modifier.aspectRatio(1.5f), onClick, content)
+}
 
 @Composable
 fun AspectRatioRow(
@@ -63,24 +64,9 @@ fun AspectRatioRow(
         modifier = modifier.fillMaxWidth()
     ) {
         items(AspectRatio.All) { item ->
-            AspectRatioButton(item, onClick = { setAspectRatio(item) })
-        }
-    }
-}
-
-@Composable
-fun AspectRatioButton(item: AspectRatio, onClick: () -> Unit) {
-    val bgColor = MaterialTheme.colorScheme.surfaceVariant
-    Box(
-        modifier = Modifier
-            .aspectRatio(1.5f)
-            .background(bgColor, shape = RoundedCornerShape(8.dp))
-            .clickable { onClick() }
-            .padding(8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = item.label, style = MaterialTheme.typography.bodyLarge)
+            OptionButton(onClick = { setAspectRatio(item) }) {
+                Text(text = item.label, style = MaterialTheme.typography.bodyLarge)
+            }
         }
     }
 }
@@ -103,29 +89,21 @@ fun ColorRow(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier.fillMaxWidth()
     ) {
-        items(Constants.COLORS) { color ->
-            ColorButton(color, onClick = { setColor(color) })
+        items(Constants.COLORS) { barColor ->
+            OptionButton(onClick = { setColor(barColor) }) {
+                BarColorBox(barColor)
+            }
         }
     }
 }
 
 @Composable
-fun ColorButton(barColor: Color, onClick: () -> Unit) {
-    val bgColor = MaterialTheme.colorScheme.surfaceVariant
+fun BarColorBox(barColor: Color) {
     Box(
-        modifier = Modifier
-            .aspectRatio(1.5f)
-            .background(bgColor, shape = RoundedCornerShape(8.dp))
-            .clickable { onClick() }
-            .padding(8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier
-                .size(36.dp, 24.dp)
-                .background(barColor))
-        }
-    }
+        Modifier
+            .size(36.dp, 24.dp)
+            .background(barColor)
+    )
 }
 
 @Preview
@@ -147,28 +125,12 @@ fun SectionRow(
         modifier = modifier.fillMaxWidth()
     ) {
         items((1..10).toList()) { sectionCount ->
-            SectionButton(sectionCount, onClick = { setSections(sectionCount) })
+            OptionButton(onClick = { setSections(sectionCount) }) {
+                Text(text = sectionCount.toString(), style = MaterialTheme.typography.bodyLarge)
+            }
         }
     }
 }
-
-@Composable
-fun SectionButton(sectionCount: Int, onClick: () -> Unit) {
-    val bgColor = MaterialTheme.colorScheme.surfaceVariant
-    Box(
-        modifier = Modifier
-            .aspectRatio(1.5f)
-            .background(bgColor, shape = RoundedCornerShape(8.dp))
-            .clickable { onClick() }
-            .padding(8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = sectionCount.toString(), style = MaterialTheme.typography.bodyLarge)
-        }
-    }
-}
-
 
 @Preview
 @Composable

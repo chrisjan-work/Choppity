@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- package com.lairofpixies.choppity.ui
+package com.lairofpixies.choppity.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,11 +33,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.lairofpixies.choppity.R
 import com.lairofpixies.choppity.ui.theme.ChoppityTheme
 
 @Composable
@@ -68,7 +70,7 @@ fun ProgressDialog(
                 )
                 Spacer(Modifier.size(24.dp))
                 Text(
-                    text = "Saving...",
+                    text = stringResource(R.string.saving),
                     fontSize = 28.sp
                 )
             }
