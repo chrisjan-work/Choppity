@@ -187,29 +187,36 @@ class MainViewModel(
         consumeNextExport()
     }
 
-    fun launchExports(hiresBitmap: Bitmap, callback: (Bitmap, String) -> Unit) {
+    fun launchExports(bitmapToExport: Bitmap, callback: (Bitmap, String) -> Unit) {
+        val originalUri = inputUri.value ?: return
+
         toggleBusy(true)
         val shouldStartQueue = exportQueue.isEmpty()
-        val originalUri = inputUri.value ?: return
+        populateQueue(originalUri, bitmapToExport, callback)
+
+        if (shouldStartQueue) {
+            consumeNextExport()
+        } else {
+            toggleBusy(false)
+        }
+    }
+
+    private fun populateQueue(originalUri: Uri, bitmapToExport: Bitmap, callback: (Bitmap, String) -> Unit) {
         val originalFilename = diskLogic.getFileNameFromUri(originalUri) ?: "image.JPG"
         val basicOutputFilename = originalFilename.insertBeforeExtension("_edit")
         if (processParams.value.sectionCount <= 1) {
             exportQueue.add {
-                callback(hiresBitmap, basicOutputFilename)
+                callback(bitmapToExport, basicOutputFilename)
             }
         } else {
             val sections =
-                choppify(hiresBitmap, processParams.value.sectionCount)
+                choppify(bitmapToExport, processParams.value.sectionCount)
             for ((index, sectionBitmap) in sections.withIndex()) {
                 exportQueue.add {
                     val sectionFilename = basicOutputFilename.insertBeforeExtension("_$index")
                     callback(sectionBitmap, sectionFilename)
                 }
             }
-        }
-
-        if (shouldStartQueue) {
-            consumeNextExport()
         }
     }
 
