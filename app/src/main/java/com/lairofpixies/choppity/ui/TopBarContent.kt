@@ -27,11 +27,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.DriveFolderUpload
+import androidx.compose.material.icons.filled.FileOpen
+import androidx.compose.material.icons.filled.InsertPhoto
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Rotate90DegreesCw
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -62,6 +70,7 @@ fun TopBarContent(
                     .fillMaxWidth()
                     .align(Alignment.Center)
             ) {
+                ExitIcon(exitAction)
                 FlipButton(flipAction)
                 RotateIcon(outputAvailable, rotateAction)
 
@@ -69,7 +78,6 @@ fun TopBarContent(
 
                 ImportIcon(importAction)
                 ExportIcon(outputAvailable, exportAction)
-                ExitIcon(exitAction)
             }
         }
     )
@@ -78,7 +86,7 @@ fun TopBarContent(
 @Composable
 fun ImportIcon(importAction: () -> Unit) {
     Icon(
-        Icons.Default.Add,
+        Icons.Default.DriveFolderUpload,
         contentDescription = "Import",
         modifier =
             Modifier
@@ -104,7 +112,7 @@ fun ExportIcon(
     }
 
     Icon(
-        Icons.Default.Done,
+        Icons.Default.Save,
         contentDescription = "Export",
         modifier = exportModifier,
         tint = MaterialTheme.colorScheme.onBackground,
@@ -114,7 +122,7 @@ fun ExportIcon(
 @Composable
 fun ExitIcon(exitAction: () -> Unit) {
     Icon(
-        Icons.Default.Clear,
+        Icons.AutoMirrored.Default.ArrowBack,
         contentDescription = "Exit",
         modifier =
             Modifier
@@ -140,7 +148,7 @@ fun RotateIcon(
     }
 
     Icon(
-        Icons.Default.Refresh,
+        Icons.Default.Rotate90DegreesCw,
         contentDescription = "Rotate",
         modifier = rotateModifier,
         tint = MaterialTheme.colorScheme.onBackground,
@@ -152,7 +160,7 @@ fun FlipButton(
     flipAction: () -> Unit
 ) {
     Icon(
-        Icons.Default.Person,
+        Icons.Default.Contrast,
         contentDescription = "Flip",
         modifier =
             Modifier
