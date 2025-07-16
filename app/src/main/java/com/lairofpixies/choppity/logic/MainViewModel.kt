@@ -182,9 +182,17 @@ class MainViewModel(
         }
     }
 
+    private fun cancelExports() {
+        exportQueue.clear()
+        toggleBusy(false)
+    }
+
     fun exportSingle(bitmap: Bitmap, uri: Uri) {
-        diskLogic.saveBitmapToUri(bitmap, uri)
-        consumeNextExport()
+        if (diskLogic.saveBitmapToUri(bitmap, uri)) {
+            consumeNextExport()
+        } else {
+            cancelExports()
+        }
     }
 
     fun launchExports(bitmapToExport: Bitmap, callback: (Bitmap, String) -> Unit) {

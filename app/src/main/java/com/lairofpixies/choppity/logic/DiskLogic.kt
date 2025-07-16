@@ -35,14 +35,16 @@ class DiskLogic(private val context: Context) {
         }
     }
 
-    internal fun saveBitmapToUri(bitmap: Bitmap, uri: Uri) {
+    // returns true if successful
+    internal fun saveBitmapToUri(bitmap: Bitmap, uri: Uri): Boolean {
         try {
-            // TODO: display error
-            val outputStream = context.contentResolver.openOutputStream(uri) ?: return
+            val outputStream = context.contentResolver.openOutputStream(uri) ?: return false
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
             outputStream.close()
+            return true
         } catch (e: Exception) {
             e.printStackTrace()
+            return false
         }
     }
 
