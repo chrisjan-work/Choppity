@@ -27,6 +27,7 @@ import androidx.lifecycle.viewModelScope
 import com.lairofpixies.choppity.data.AspectRatio
 import com.lairofpixies.choppity.data.Constants
 import com.lairofpixies.choppity.data.DialogStyle
+import com.lairofpixies.choppity.data.FillColor
 import com.lairofpixies.choppity.data.ProcessParams
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -147,7 +148,7 @@ class MainViewModel(
         }
     }
 
-    fun setRenderColor(newColor: Color) {
+    fun setRenderColor(newColor: FillColor) {
         viewModelScope.launch {
             _processParams.emit(processParams.value.copy(bgColor = newColor))
         }

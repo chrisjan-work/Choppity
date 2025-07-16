@@ -2,7 +2,7 @@
     <string name="app_name">Choppity</string>
     <string name="no_image_loaded">No image loaded</string>
     <string name="saving">Saving…</string>
-    <string name="bar_color">bg color</string>
+    <string name="fill_color">fill color</string>
     <string name="aspect_ratio">aspect ratio</string>
     <string name="sections">sections</string>
     <string name="close">Close</string>

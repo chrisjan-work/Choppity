@@ -120,7 +120,7 @@ internal fun renderHires(inputBitmap: Bitmap, params: ProcessParams): Bitmap {
             rotatedBitmap
         } else {
             val desiredDimensions = calculateDimensions(inputBitmap, params.aspectRatio)
-            createResizedBitmap(rotatedBitmap, desiredDimensions, params.bgColor)
+            createResizedBitmap(rotatedBitmap, desiredDimensions, params.bgColor.color)
         }
 
     return processedBitmap

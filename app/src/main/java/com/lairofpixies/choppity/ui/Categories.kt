@@ -33,11 +33,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lairofpixies.choppity.data.AspectRatio
 import com.lairofpixies.choppity.data.Constants
+import com.lairofpixies.choppity.data.FillColor
 
 
 enum class OptionCategories { ASPECT_RATIO, FILL_COLOR, SECTION_COUNT }
@@ -80,7 +80,7 @@ fun AspectRatioRowPreview() {
 @Composable
 fun ColorRow(
     modifier: Modifier = Modifier,
-    setColor: (Color) -> Unit,
+    setColor: (FillColor) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),
@@ -89,20 +89,20 @@ fun ColorRow(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier.fillMaxWidth()
     ) {
-        items(Constants.COLORS) { barColor ->
-            OptionButton(onClick = { setColor(barColor) }) {
-                BarColorBox(barColor)
+        items(Constants.COLORS) { fillColor ->
+            OptionButton(onClick = { setColor(fillColor) }) {
+                FillColorBox(fillColor)
             }
         }
     }
 }
 
 @Composable
-fun BarColorBox(barColor: Color) {
+fun FillColorBox(fillColor: FillColor) {
     Box(
         Modifier
             .size(36.dp, 24.dp)
-            .background(barColor)
+            .background(fillColor.color)
     )
 }
 

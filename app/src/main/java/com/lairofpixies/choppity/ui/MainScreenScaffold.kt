@@ -126,7 +126,7 @@ fun CategoryChooserRow(viewModel: MainViewModel?, selectCategory: (OptionCategor
     ) {
         val params = viewModel?.processParams?.collectAsState()?.value ?: ProcessParams.Default
         AspectRatioCategoryButton(params.aspectRatio, selectCategory)
-        BarColorCategoryButton(params.bgColor, selectCategory)
+        FillColorCategoryButton(params.bgColor, selectCategory)
         SectionCountCategoryButton(params.sectionCount, selectCategory)
     }
 }

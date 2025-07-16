@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -22,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lairofpixies.choppity.R
 import com.lairofpixies.choppity.data.AspectRatio
+import com.lairofpixies.choppity.data.Constants
+import com.lairofpixies.choppity.data.FillColor
 
 
 @Composable
@@ -67,23 +68,24 @@ fun CategoryButtonsPreview() {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         AspectRatioCategoryButton(AspectRatio.Square) { }
-        BarColorCategoryButton(Color(0xFF000000)) { }
+        FillColorCategoryButton(Constants.FILL_COLOR_BLACK) { }
         SectionCountCategoryButton(3) { }
     }
 }
 
 @Composable
-fun BarColorCategoryButton(
-    barColor: Color,
+fun FillColorCategoryButton(
+    fillColor: FillColor,
     selectCategory: (OptionCategories) -> Unit
 ) {
+    val label = stringResource(R.string.fill_color)
     CategoryButton(
-        // modifier = Modifier.semantics { contentDescription = TODO() },
-        label =  stringResource(R.string.bar_color),
+        modifier = Modifier.semantics { contentDescription = "$label is ${fillColor.name}" },
+        label = label,
         onClick = {
             selectCategory(OptionCategories.FILL_COLOR)
         }) {
-        BarColorBox(barColor)
+        FillColorBox(fillColor)
     }
 }
 

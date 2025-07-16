@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 
 data class ProcessParams(
     val aspectRatio: AspectRatio,
-    val bgColor: Color,
+    val bgColor: FillColor,
     val screenDimensions: Size,
     val turns: Constants.Rotations,
     val sectionCount: Int
@@ -31,7 +31,7 @@ data class ProcessParams(
     companion object {
         val Default = ProcessParams(
             aspectRatio = AspectRatio.Original,
-            bgColor = Color.Black,
+            bgColor = Constants.FILL_COLOR_BLACK,
             screenDimensions = Size(1920f, 1080f),
             turns = Constants.Rotations.None,
             sectionCount = 1
