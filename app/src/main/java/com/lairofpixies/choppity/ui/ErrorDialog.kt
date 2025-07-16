@@ -21,13 +21,13 @@ package com.lairofpixies.choppity.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,7 +43,7 @@ import com.lairofpixies.choppity.R
 import com.lairofpixies.choppity.ui.theme.ChoppityTheme
 
 @Composable
-fun ProgressDialog(
+fun ErrorDialog(
     onDismiss: () -> Unit
 ) {
     Dialog(
@@ -61,17 +61,15 @@ fun ProgressDialog(
                 .padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(48.dp),
-                    strokeWidth = 4.dp,
-                    color = MaterialTheme.colorScheme.primary
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = stringResource(R.string.error_exporting),
+                    fontSize = 20.sp
                 )
                 Spacer(Modifier.size(24.dp))
-                Text(
-                    text = stringResource(R.string.saving),
-                    fontSize = 28.sp
-                )
+                Button(onClick = onDismiss) {
+                    Text(stringResource(R.string.close))
+                }
             }
 
         }
@@ -80,8 +78,8 @@ fun ProgressDialog(
 
 @Preview
 @Composable
-fun PreviewProgressDialog() {
+fun ErrorDialogPreview() {
     ChoppityTheme {
-        ProgressDialog {}
+        ErrorDialog {}
     }
 }

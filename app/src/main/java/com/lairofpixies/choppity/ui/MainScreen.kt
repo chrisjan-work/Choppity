@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import com.lairofpixies.choppity.data.DialogStyle
 import com.lairofpixies.choppity.logic.MainViewModel
 
 
@@ -66,9 +67,12 @@ fun CentralView(
     }
 
     val showBusy = viewModel.busyIndicator.collectAsState().value
-    if (showBusy) {
-        ProgressDialog(modifier = modifier) {
-            viewModel.toggleBusy(false)
-        }
+    val dismissDialog = { viewModel.toggleDialog(DialogStyle.NONE) }
+    when (showBusy) {
+        DialogStyle.BUSY ->
+            ProgressDialog(dismissDialog)
+        DialogStyle.ERROR ->
+            ErrorDialog(dismissDialog)
+        else -> {}
     }
 }

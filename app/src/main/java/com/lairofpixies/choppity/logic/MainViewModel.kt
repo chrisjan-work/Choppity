@@ -26,6 +26,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lairofpixies.choppity.data.AspectRatio
 import com.lairofpixies.choppity.data.Constants
+import com.lairofpixies.choppity.data.DialogStyle
 import com.lairofpixies.choppity.data.ProcessParams
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,7 +54,7 @@ class MainViewModel(
     private val _loresBitmap = MutableStateFlow<Bitmap?>(null)
     val loresBitmap = _loresBitmap.asStateFlow()
 
-    private val _busyIndicator = MutableStateFlow(false)
+    private val _busyIndicator = MutableStateFlow(DialogStyle.NONE)
     val busyIndicator = _busyIndicator.asStateFlow()
 
     private val _processParams = MutableStateFlow(ProcessParams.Default)
@@ -178,13 +179,13 @@ class MainViewModel(
             val nextCallback = exportQueue.removeAt(0)
             nextCallback.invoke()
         } else {
-            toggleBusy(false)
+            toggleDialog(DialogStyle.NONE)
         }
     }
 
     private fun cancelExports() {
         exportQueue.clear()
-        toggleBusy(false)
+        toggleDialog(DialogStyle.ERROR)
     }
 
     fun exportSingle(bitmap: Bitmap, uri: Uri) {
@@ -198,14 +199,14 @@ class MainViewModel(
     fun launchExports(bitmapToExport: Bitmap, callback: (Bitmap, String) -> Unit) {
         val originalUri = inputUri.value ?: return
 
-        toggleBusy(true)
+        toggleDialog(DialogStyle.BUSY)
         val shouldStartQueue = exportQueue.isEmpty()
         populateQueue(originalUri, bitmapToExport, callback)
 
         if (shouldStartQueue) {
             consumeNextExport()
         } else {
-            toggleBusy(false)
+            toggleDialog(DialogStyle.NONE)
         }
     }
 
@@ -228,9 +229,9 @@ class MainViewModel(
         }
     }
 
-    fun toggleBusy(busy: Boolean) {
+    fun toggleDialog(dialogStyle: DialogStyle) {
         viewModelScope.launch {
-            _busyIndicator.emit(busy)
+            _busyIndicator.emit(dialogStyle)
         }
     }
 }
