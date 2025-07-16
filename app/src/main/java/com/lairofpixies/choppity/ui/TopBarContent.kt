@@ -46,7 +46,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.lairofpixies.choppity.R
 
 @Composable
 fun TopBarContent(
@@ -87,7 +89,7 @@ fun TopBarContent(
 fun ImportIcon(importAction: () -> Unit) {
     Icon(
         Icons.Default.DriveFolderUpload,
-        contentDescription = "Import",
+        contentDescription = stringResource(R.string.CD_Import),
         modifier =
             Modifier
                 .padding(8.dp)
@@ -113,7 +115,7 @@ fun ExportIcon(
 
     Icon(
         Icons.Default.Save,
-        contentDescription = "Export",
+        contentDescription = stringResource(R.string.CD_Export),
         modifier = exportModifier,
         tint = MaterialTheme.colorScheme.onBackground,
     )
@@ -123,7 +125,7 @@ fun ExportIcon(
 fun ExitIcon(exitAction: () -> Unit) {
     Icon(
         Icons.AutoMirrored.Default.ArrowBack,
-        contentDescription = "Exit",
+        contentDescription = stringResource(R.string.CD_Exit),
         modifier =
             Modifier
                 .padding(8.dp)
@@ -149,7 +151,7 @@ fun RotateIcon(
 
     Icon(
         Icons.Default.Rotate90DegreesCw,
-        contentDescription = "Rotate",
+        contentDescription = stringResource(R.string.CD_Rotate),
         modifier = rotateModifier,
         tint = MaterialTheme.colorScheme.onBackground,
     )
@@ -161,7 +163,7 @@ fun FlipButton(
 ) {
     Icon(
         Icons.Default.Contrast,
-        contentDescription = "Flip",
+        contentDescription = stringResource(R.string.CD_Flip),
         modifier =
             Modifier
                 .padding(8.dp)

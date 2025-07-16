@@ -21,6 +21,10 @@ package com.lairofpixies.choppity.data
 import androidx.compose.ui.graphics.Color
 
 object Constants {
+    // Generating export filenames
+    const val DEFAULT_FILENAME = "image.JPG"
+    const val EXPORT_PREFIX = "_edit"
+
     // Zoom controls
     const val RESET_ZOOM_ON_DOUBLE_TAP = true
     const val RESET_ZOOM_ON_RELEASE = false

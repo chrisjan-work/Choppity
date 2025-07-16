@@ -114,7 +114,7 @@ fun ZoomableBitmap(bitmap: Bitmap, modifier: Modifier = Modifier) {
             .data(bitmap)
             .size(bitmap.width, bitmap.height) // Original dimensions
             .build(),
-        contentDescription = "Zoomable Image",
+        contentDescription = stringResource(R.string.CD_zoomable_image),
         imageLoader = imageLoader,
         contentScale = ContentScale.Fit, // Or other ContentScale options
         modifier = modifier

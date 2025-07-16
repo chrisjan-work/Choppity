@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- package com.lairofpixies.choppity.logic
+package com.lairofpixies.choppity.logic
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -51,7 +51,7 @@ class DiskLogic(private val context: Context) {
     // Helper function to get the file name from a content URI (if possible)
     fun getFileNameFromUri(uri: Uri): String? {
         var fileName: String? = null
-        if (uri.scheme == "content") {
+        if (uri.scheme == SCHEME_CONTENT) {
             val cursor = context.contentResolver.query(uri, null, null, null, null)
             cursor?.use {
                 if (it.moveToFirst()) {
@@ -62,10 +62,15 @@ class DiskLogic(private val context: Context) {
                     }
                 }
             }
-        } else if (uri.scheme == "file") {
+        } else if (uri.scheme == SCHEME_FILE) {
             fileName = uri.lastPathSegment
         }
         return fileName
+    }
+
+    companion object {
+        const val SCHEME_CONTENT = "content"
+        const val SCHEME_FILE = "file"
     }
 }
 

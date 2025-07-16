@@ -7,4 +7,10 @@
     <string name="sections">sections</string>
     <string name="close">Close</string>
     <string name="error_exporting">Error while exporting image</string>
+    <string name="CD_zoomable_image">Zoomable Image</string>
+    <string name="CD_Import">Import image</string>
+    <string name="CD_Export">Export sections</string>
+    <string name="CD_Exit">Exit app</string>
+    <string name="CD_Rotate">Rotate 90 degrees clock-wise</string>
+    <string name="CD_Flip">Invert app contrast</string>
 </resources>

@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,7 +31,10 @@ fun CategoryButton(
     onClick: () -> Unit,
     content: @Composable BoxScope.() -> Unit
 ) {
-    BaseButton(modifier = modifier.size(96.dp, 56.dp), onClick) {
+    BaseButton(
+        modifier = modifier.size(96.dp, 56.dp),
+        onClick
+    ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -46,8 +51,10 @@ fun AspectRatioCategoryButton(
     aspectRatio: AspectRatio,
     selectCategory: (OptionCategories) -> Unit,
 ) {
+    val label = stringResource(R.string.aspect_ratio)
     CategoryButton(
-        label = stringResource(R.string.aspect_ratio),
+        modifier = Modifier.semantics { contentDescription = "$label is ${aspectRatio.readable}" },
+        label = label,
         onClick = { selectCategory(OptionCategories.ASPECT_RATIO) }) {
         Text(text = aspectRatio.label, style = MaterialTheme.typography.bodyLarge)
     }
@@ -71,7 +78,8 @@ fun BarColorCategoryButton(
     selectCategory: (OptionCategories) -> Unit
 ) {
     CategoryButton(
-        label = stringResource(R.string.bar_color),
+        // modifier = Modifier.semantics { contentDescription = TODO() },
+        label =  stringResource(R.string.bar_color),
         onClick = {
             selectCategory(OptionCategories.FILL_COLOR)
         }) {
@@ -84,8 +92,10 @@ fun SectionCountCategoryButton(
     sectionCount: Int,
     selectCategory: (OptionCategories) -> Unit
 ) {
+    val label = stringResource(R.string.sections)
     CategoryButton(
-        label = stringResource(R.string.sections),
+        modifier = Modifier.semantics { contentDescription = "$sectionCount $label" },
+        label = label,
         onClick = {
             selectCategory(OptionCategories.SECTION_COUNT)
         }) {

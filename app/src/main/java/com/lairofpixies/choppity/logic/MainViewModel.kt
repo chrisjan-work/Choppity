@@ -211,8 +211,8 @@ class MainViewModel(
     }
 
     private fun populateQueue(originalUri: Uri, bitmapToExport: Bitmap, callback: (Bitmap, String) -> Unit) {
-        val originalFilename = diskLogic.getFileNameFromUri(originalUri) ?: "image.JPG"
-        val basicOutputFilename = originalFilename.insertBeforeExtension("_edit")
+        val originalFilename = diskLogic.getFileNameFromUri(originalUri) ?: Constants.DEFAULT_FILENAME
+        val basicOutputFilename = originalFilename.insertBeforeExtension(Constants.EXPORT_PREFIX)
         if (processParams.value.sectionCount <= 1) {
             exportQueue.add {
                 callback(bitmapToExport, basicOutputFilename)
