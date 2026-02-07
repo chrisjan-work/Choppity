@@ -221,9 +221,9 @@ class MainViewModel(
         } else {
             val sections =
                 choppify(bitmapToExport, processParams.value.sectionCount)
-            for ((index, sectionBitmap) in sections.withIndex()) {
+            for ((reverseIndex, sectionBitmap) in sections.reversed().withIndex()) {
                 exportQueue.add {
-                    val sectionFilename = basicOutputFilename.insertBeforeExtension("_$index")
+                    val sectionFilename = basicOutputFilename.insertBeforeExtension("_$reverseIndex")
                     callback(sectionBitmap, sectionFilename)
                 }
             }
